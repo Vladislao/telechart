@@ -1,0 +1,25 @@
+{
+  "name": "telechart",
+  "version": "1.0.0",
+  "description": "Minimalistic charts without dependencies",
+  "main": "dist/telechart.js",
+  "module": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server --open",
+    "build": "webpack --mode=production",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "chart",
+    "webgl",
+    "canvas"
+  ],
+  "author": "Vladislav",
+  "license": "MIT",
+  "devDependencies": {
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.2.1"
+  }
+}
