@@ -17,7 +17,14 @@
   "author": "Vladislav",
   "license": "MIT",
   "devDependencies": {
-    "html-webpack-plugin": "^3.2.0",
+    "autoprefixer": "^9.5.0",
+    "css-declaration-sorter": "^4.0.1",
+    "css-loader": "^2.1.1",
+    "cssnano": "^4.1.10",
+    "cssnano-preset-advanced": "^4.0.7",
+    "mini-css-extract-plugin": "^0.5.0",
+    "postcss-loader": "^3.0.0",
+    "style-loader": "^0.23.1",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.2.3",
     "webpack-dev-server": "^3.2.1"

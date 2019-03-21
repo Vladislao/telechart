@@ -1,0 +1,88 @@
+.tc-controls {
+  display: flex;
+
+  flex-flow: wrap;
+  align-items: center;
+}
+
+.tc-control {
+  display: flex;
+  align-items: center;
+
+  margin: 5px;
+  padding: 5px 15px 5px 5px;
+
+  border-radius: 30px;
+  border: 1px solid #e6ecf0;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+.tc-checkbox {
+  position: relative;
+
+  width: 30px;
+  height: 30px;
+  margin-right: 8px;
+
+  border-radius: 50%;
+  border: 1px solid #e6ecf0;
+}
+
+.tc-checkbox:after,
+.tc-checkbox:before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  content: "";
+  display: block;
+  width: 0;
+
+  background-color: #fff;
+  border: 1px solid #fff;
+  border-radius: 1px;
+
+  transition: transform 0.3s ease;
+}
+
+.tc-checkbox:after {
+  height: 12px;
+  transform: translate(-1px, -6px) rotate(45deg);
+}
+
+.tc-checkbox:before {
+  height: 12px;
+  transform: translate(-1px, -6px) rotate(-45deg);
+}
+
+.tc-control.tc-checked > .tc-checkbox:after {
+  top: 14px;
+  left: 10px;
+  height: 6px;
+  transform: rotate(-45deg);
+}
+
+.tc-control.tc-checked > .tc-checkbox:before {
+  top: 9px;
+  left: 15px;
+  transform: rotate(45deg);
+}
+
+/* .tc-control.tc-checked > .tc-checkbox:after {
+  position: absolute;
+  left: 12px;
+  top: 9px;
+
+  content: "";
+  display: block;
+
+  width: 4px;
+  height: 9px;
+
+  border: solid #fff;
+  border-width: 0 3px 3px 0;
+
+  transform: rotate(45deg);
+} */
