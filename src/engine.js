@@ -16,7 +16,7 @@ module.exports = () => {
 
       cancelAnimation: animation => {
         engine.animations = engine.animations.filter(v => v !== animation);
-        return animation;
+        return null;
       },
 
       render: ms => {

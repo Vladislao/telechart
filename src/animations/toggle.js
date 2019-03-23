@@ -1,5 +1,5 @@
 const { animate } = require("../utils/animation");
-const { minmax } = require("../utils/transformations");
+const { minmax } = require("../utils/transformation");
 
 const createShowAnimation = (id, state, render) =>
   animate(

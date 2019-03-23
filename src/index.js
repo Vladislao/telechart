@@ -23,6 +23,7 @@ const createDOM = (element, chart, controls, preview) => {
 module.exports = (element, data) => {
   // TODO: check if already a canvas
   // TODO: check caniuse
+
   const engine = createEngine();
 
   const initialState = createInitialState(data);
@@ -54,22 +55,29 @@ module.exports = (element, data) => {
   view.registerEvent(v => {
     // TODO: touchevent
     // TODO: cross
-    let previous = null;
-    v.element.addEventListener("mousemove", e => {
+    let animation = null;
+    const handleMouseEvent = e => {
       state.offsetX = e.offsetX;
-      state.offsetY = e.offsetY;
 
-      engine.cancelAnimation(previous);
-      previous = engine.registerAnimation(render);
-    });
-    v.element.addEventListener("mouseleave", e => {
+      // enter constant rendering phase
+      if (animation) return;
+      animation = engine.registerAnimation(() => {
+        render();
+        return true;
+      });
+    };
+
+    v.element.addEventListener("mountenter", handleMouseEvent);
+    v.element.addEventListener("mousemove", handleMouseEvent);
+    v.element.addEventListener("mouseleave", () => {
       state.offsetX = null;
 
-      engine.cancelAnimation(previous);
-      previous = engine.registerAnimation(render);
+      animation = engine.cancelAnimation(animation);
+      engine.registerAnimation(render);
     });
   });
 
+  // render our initial state once
   engine.registerAnimation(view.render);
   engine.registerAnimation(preview.render);
 
