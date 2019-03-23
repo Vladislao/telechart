@@ -1,4 +1,4 @@
-const createControl = (id, state, callback) => {
+const createControl = (id, state) => {
   const color = state.colors[id];
   const name = state.names[id];
 
@@ -10,22 +10,24 @@ const createControl = (id, state, callback) => {
   element.appendChild(checkbox);
   element.append(name);
   element.className = "tc-control tc-checked";
-  element.addEventListener("click", e => {
-    element.classList.toggle("tc-checked");
-    callback(id);
-  });
 
   return element;
 };
 
-module.exports = (state, callback) => {
-  const controls = document.createElement("div");
-  controls.className = "tc-controls";
+module.exports = state => {
+  const element = document.createElement("div");
+  element.className = "tc-controls";
 
-  Object.keys(state.names).forEach(v => {
-    const control = createControl(v, state, callback);
-    controls.appendChild(control);
+  const controls = Object.keys(state.names).map(v => {
+    const control = createControl(v, state);
+    element.appendChild(control);
+    return { id: v, element: control };
   });
 
-  return controls;
+  return {
+    element,
+    registerEvent: callback => {
+      controls.forEach(v => callback(v));
+    }
+  };
 };

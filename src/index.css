@@ -1,3 +1,16 @@
+.tc-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.tc-chart {
+  height: 200px;
+}
+
+.tc-preview {
+  height: 40px;
+}
+
 .tc-controls {
   display: flex;
 
