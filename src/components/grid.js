@@ -36,45 +36,39 @@ module.exports = (state, options) => {
       ctx.fillText(v.value, 0, y);
     });
 
-    state.minmax.x0.steps.forEach(v => {
-      const measure = ctx.measureText(v.value);
-      const x = ctx.canvas.width * v.point - measure.width / 2;
-      ctx.fillText(v.value, x, ctx.canvas.height);
-    });
+    const start = closest(state.columns.x, state.window.offset);
+    const end = closest(
+      state.columns.x,
+      state.window.width + state.window.offset
+    );
 
-    // const start = closest(state.columns.x, state.window.offset);
-    // const end = closest(
-    //   state.columns.x,
-    //   state.window.width + state.window.offset
-    // );
+    const borderStart = closest(state.columns.x, 0.03);
+    const borderEnd = closest(state.columns.x, 0.97);
+    const scale = findScale(start, end, 6, preferedXSteps);
 
-    // const borderStart = closest(state.columns.x, 0.03);
-    // const borderEnd = closest(state.columns.x, 0.97);
-    // const scale = findScale(start, end, 6, preferedXSteps);
+    for (
+      let i = Math.max(scale.min, borderStart);
+      i < Math.min(scale.max, borderEnd);
+      i += scale.step
+    ) {
+      const value = state.columns.x[i];
 
-    // for (
-    //   let i = Math.max(scale.min, borderStart);
-    //   i < Math.min(scale.max, borderEnd);
-    //   i += scale.step
-    // ) {
-    //   const value = state.columns.x[i];
+      const dx = translate(
+        value,
+        state.minmax.x.max,
+        state.minmax.x.min,
+        state.window.offset,
+        state.window.width
+      );
 
-    //   const dx = translate(
-    //     value,
-    //     state.minmax.x.max,
-    //     state.minmax.x.min,
-    //     state.window.offset,
-    //     state.window.width
-    //   );
-
-    //   const fvalue = new Date(value).toLocaleDateString("en-US", {
-    //     day: "2-digit",
-    //     month: "short"
-    //   });
-    //   const measure = ctx.measureText(fvalue);
-    //   const x = ctx.canvas.width * dx - measure.width / 2;
-    //   ctx.fillText(fvalue, x, ctx.canvas.height);
-    // }
+      const fvalue = new Date(value).toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "short"
+      });
+      const measure = ctx.measureText(fvalue);
+      const x = ctx.canvas.width * dx - measure.width / 2;
+      ctx.fillText(fvalue, x, ctx.canvas.height);
+    }
   };
 
   return {

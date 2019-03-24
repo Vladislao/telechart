@@ -34,7 +34,6 @@ const createCurrentState = initialState => {
     minmax: {
       x: minmax(initialState.columns.x),
       y: minmax(initialState.ids.map(v => initialState.columns[v])),
-      x0: minmax(initialState.columns.x, closest(y0, 0.7), closest(y0, 1) + 1),
       y0: minmax(
         initialState.ids.map(v => initialState.columns[v]),
         closest(y0, 0.7),

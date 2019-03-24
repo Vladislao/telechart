@@ -32,19 +32,19 @@ module.exports = (state, engine, render) => v => {
     engine.registerAnimation(createMinmaxAnimation(state, render));
   };
 
-  v.element.addEventListener("mousedown", e => {
-    const offset = (e.offsetX / e.target.width) * window.devicePixelRatio;
+  const handleStart = (offsetX, targetWidth) => {
+    if (animation) return;
+
+    const offset = (offsetX / targetWidth) * window.devicePixelRatio;
     const createPreviewAnimation = determineAnimation(state, offset);
 
     if (!createPreviewAnimation) {
-      handleCancel();
+      // handleCancel();
       return;
     }
 
-    if (animation) return;
-
-    state.window.offsetX = e.offsetX;
-    state.window.targetWidth = e.target.width;
+    state.window.offsetX = offsetX;
+    state.window.targetWidth = targetWidth;
 
     animation = engine.registerAnimation(
       createPreviewAnimation(
@@ -60,8 +60,25 @@ module.exports = (state, engine, render) => v => {
         }
       )
     );
+  };
+
+  v.element.addEventListener("mousedown", e => {
+    handleStart(e.offsetX, e.target.width);
+  });
+  v.element.addEventListener("touchstart", e => {
+    const rect = e.target.getBoundingClientRect();
+    const offsetX = e.targetTouches[0].pageX - rect.left;
+    handleStart(offsetX, e.target.width);
   });
 
+  v.element.addEventListener("touchmove", e => {
+    if (!animation) return;
+
+    const rect = e.target.getBoundingClientRect();
+
+    state.window.offsetX = e.targetTouches[0].pageX - rect.left;
+    state.window.targetWidth = e.target.width;
+  });
   v.element.addEventListener("mousemove", e => {
     if (!animation) return;
 
@@ -71,4 +88,6 @@ module.exports = (state, engine, render) => v => {
 
   v.element.addEventListener("mouseleave", handleCancel);
   v.element.addEventListener("mouseup", handleCancel);
+  v.element.addEventListener("touchcancel", handleCancel);
+  v.element.addEventListener("touchend", handleCancel);
 };
