@@ -14,11 +14,6 @@ module.exports = (gl, commonAttributes, drawingObjects) => {
 
     let lastProgram = null;
     drawingObjects.forEach(v => {
-      // console.log()
-      if (v.debug) {
-        console.log(v);
-      }
-
       if (v.skip()) return;
 
       if (lastProgram !== v.programInfo.program) {

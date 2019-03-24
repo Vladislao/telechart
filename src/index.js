@@ -82,7 +82,6 @@ module.exports = (element, data) => {
       const offset = state.window.offset + deltaOffset / 100000;
 
       const index = closest(state.columns.x, offset);
-      console.log(offset, state.columns.x.length, index);
 
       if (state.tooltip.index !== index) {
         state.tooltip.index = index;
@@ -111,7 +110,7 @@ module.exports = (element, data) => {
       if (animation) return;
 
       animation = engine.registerAnimation(() => {
-        render();
+        view.render();
         return true;
       });
     };
@@ -122,7 +121,7 @@ module.exports = (element, data) => {
       state.tooltip.offsetX = null;
 
       animation = engine.cancelAnimation(animation);
-      engine.registerAnimation(render);
+      engine.registerAnimation(view.render);
       tooltip.render();
     });
   });
@@ -189,13 +188,11 @@ module.exports = (element, data) => {
         );
       }
       if (action.type === "w-resize") {
-        // console.log("w", action.width - delta, 1 - action.offset - delta);
         state.window.width = bound(
           action.width - delta,
           0.2,
           bound(1 - action.offset - delta, 0, 1)
         );
-        // console.log("o", action.offset + delta, 1 - state.window.width);
         state.window.offset = bound(
           action.offset + delta,
           0,

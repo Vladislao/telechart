@@ -35,7 +35,6 @@ const animate = (from, to, step, options) => {
       1
     );
 
-    // console.log(progress);
     step(update(from, to, progress));
 
     return elapsed < params.duration;
