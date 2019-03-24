@@ -18,8 +18,14 @@ const createGrid = require("./components/grid");
 const createDOM = (element, chart, controls, preview, tooltip, grid) => {
   element.className = "tc-wrapper";
 
-  if (chart) element.appendChild(chart);
-  if (grid) element.appendChild(grid);
+  const wrapper = document.createElement("div");
+  wrapper.className = "tc-chart-wrapper";
+
+  if (chart) wrapper.appendChild(chart);
+  if (grid) wrapper.appendChild(grid);
+
+  element.appendChild(wrapper);
+
   if (preview) element.appendChild(preview);
   if (controls) element.appendChild(controls);
   if (tooltip) element.appendChild(tooltip);
