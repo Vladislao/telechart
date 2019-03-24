@@ -186,6 +186,7 @@ module.exports = (element, data) => {
           0,
           bound(1 - state.window.width, 0, 1)
         );
+        state.window.index = closest(state.columns.x, state.window.offset);
       }
       if (action.type === "w-resize") {
         state.window.width = bound(
@@ -198,6 +199,7 @@ module.exports = (element, data) => {
           0,
           bound(1 - state.window.width, 0, 1)
         );
+        state.window.index = closest(state.columns.x, state.window.offset);
       }
       if (action.type === "e-resize") {
         state.window.width = bound(

@@ -1,6 +1,8 @@
 const webgl = require("../utils/webgl");
 const source = require("../shaders/line");
 
+const { closest } = require("../utils/transformation");
+
 const createProgram = gl => webgl.createProgram(gl, source);
 
 const createDrawingObject = (gl, programs, state, id, type) => ({
@@ -31,8 +33,8 @@ const createDrawingObject = (gl, programs, state, id, type) => ({
   },
   skip: () => state.colorsRGBA[id][3] === 0,
   draw: () => {
-    // const offset = type === "full" ? 0 : state.minmax.xwindow.length;
-    gl.drawArrays(gl.LINE_STRIP, 0, state.columns.x.length);
+    const offset = type === "full" ? 0 : Math.max(state.window.index - 1, 0);
+    gl.drawArrays(gl.LINE_STRIP, offset, state.columns.x.length - offset);
   }
 });
 

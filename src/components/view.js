@@ -19,7 +19,6 @@ module.exports = state => {
 
   const programs = {
     line: line.createProgram(gl),
-    vertical: vertical.createProgram(gl),
     simple: point.createProgram(gl)
   };
   const commonAttributes = {

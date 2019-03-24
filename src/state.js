@@ -44,6 +44,7 @@ const createCurrentState = initialState => {
     window: {
       offset: 0.7,
       width: 0.3,
+      index: closest(y0, 0.7),
       colorsRGBA: {
         background: colorToRgba("#000", 0.35),
         control: colorToRgba("#000", 0.5)
