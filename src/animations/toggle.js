@@ -30,65 +30,70 @@ const createMinmaxAnimation = (state, render) => {
   );
 };
 
-const createShowAnimation = (id, state, render) =>
-  animate(
+const createShowAnimation = (id, state, render) => {
+  const to = {
+    color: state.initial.colorsRGBA[id],
+    y: minmax(
+      state.ids.filter(v => state.toggles[v]).map(v => state.columns[v])
+    ),
+    y0: minmax(
+      state.ids.filter(v => state.toggles[v]).map(v => state.columns[v]),
+      closest(state.columns.x, state.window.offset),
+      closest(state.columns.x, state.window.offset + state.window.width)
+    )
+  };
+  return animate(
     {
       color: state.colorsRGBA[id],
-      minmax: {
-        y: state.minmax.y,
-        y0: state.minmax.y0
-      }
+      y: state.minmax.y,
+      y0: state.minmax.y0
     },
-    {
-      color: state.initial.colorsRGBA[id],
-      minmax: {
-        y: minmax(
-          state.ids.filter(v => state.toggles[v]).map(v => state.columns[v])
-        ),
-        y0: minmax(
-          state.ids.filter(v => state.toggles[v]).map(v => state.columns[v]),
-          closest(state.columns.x, state.window.offset),
-          closest(state.columns.x, state.window.offset + state.window.width)
-        )
-      }
-    },
+    to,
     step => {
-      state.colorsRGBA[id] = step.color;
-      state.minmax.y = step.minmax.y;
-      state.minmax.y0 = step.minmax.y0;
-      render();
-    }
-  );
+      step.y0.steps.forEach((v, i) => {
+        v.value = to.y0.steps[i].value;
+      });
 
-const createHideAnimation = (id, state, render) =>
-  animate(
-    {
-      color: state.colorsRGBA[id],
-      minmax: {
-        y: state.minmax.y,
-        y0: state.minmax.y0
-      }
-    },
-    {
-      color: state.colorsRGBA[id].slice(0, 3).concat([0]),
-      minmax: {
-        y: minmax(
-          state.ids.filter(v => state.toggles[v]).map(v => state.columns[v])
-        ),
-        y0: minmax(
-          state.ids.filter(v => state.toggles[v]).map(v => state.columns[v]),
-          closest(state.columns.x, state.window.offset),
-          closest(state.columns.x, state.window.offset + state.window.width)
-        )
-      }
-    },
-    step => {
       state.colorsRGBA[id] = step.color;
-      state.minmax.y = step.minmax.y;
-      state.minmax.y0 = step.minmax.y0;
+      state.minmax.y = step.y;
+      state.minmax.y0 = step.y0;
       render();
     }
   );
+};
+
+const createHideAnimation = (id, state, render) => {
+  const to = {
+    color: state.colorsRGBA[id].slice(0, 3).concat([0]),
+    y: minmax(
+      state.ids.filter(v => state.toggles[v]).map(v => state.columns[v])
+    ),
+    y0: minmax(
+      state.ids.filter(v => state.toggles[v]).map(v => state.columns[v]),
+      closest(state.columns.x, state.window.offset),
+      closest(state.columns.x, state.window.offset + state.window.width)
+    )
+  };
+
+  return animate(
+    {
+      color: state.colorsRGBA[id],
+      y: state.minmax.y,
+      y0: state.minmax.y0
+    },
+    to,
+    step => {
+      step.y0.steps.forEach((v, i) => {
+        v.value = to.y0.steps[i].value;
+      });
+
+      state.colorsRGBA[id] = step.color;
+      state.minmax.y = step.y;
+      state.minmax.y0 = step.y0;
+      render();
+    }
+  );
+};
 
 module.exports.createMinmaxAnimation = createMinmaxAnimation;
 module.exports.createHideAnimation = createHideAnimation;

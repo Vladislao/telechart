@@ -34,15 +34,17 @@ const findMax = (arr, start, end) => {
   return Math.max.apply(null, arr.slice(start || 0, end || arr.length));
 };
 
-const preferedSteps = [1, 1.5, 2, 2.5, 5, 7.5, 10];
-const findScale = (min, max, count) => {
+const preferedYSteps = [1, 1.5, 2, 2.5, 5, 7.5, 10];
+const preferedXSteps = [1, 2, 3, 5, 7, 10, 11, 14, 15, 30];
+
+const findScale = (min, max, count, preference) => {
   const range = max - min;
 
   const roughStep = range / (count - 1);
   const stepPower = Math.pow(10, -Math.floor(Math.log10(Math.abs(roughStep))));
   const normalizedStep = roughStep * stepPower;
 
-  const preferedStep = preferedSteps.find(v => v >= normalizedStep);
+  const preferedStep = preference.find(v => v >= normalizedStep);
   const step = +(preferedStep / stepPower).toPrecision(5);
 
   return {
@@ -68,7 +70,7 @@ const expandSteps = (min, max, step, count) => {
 const minmax = (arr, start, end) => {
   const min = findMin(arr, start, end);
   const max = findMax(arr, start, end);
-  const scale = findScale(min, max, 7);
+  const scale = findScale(min, max, 7, preferedYSteps);
   const steps = expandSteps(scale.min, scale.max, scale.step, 7);
 
   return {
@@ -80,7 +82,7 @@ const minmax = (arr, start, end) => {
 };
 
 const closest = (arr, offset) =>
-  Math.max(Math.min(Math.round(arr.length * offset), arr.length), 1) - 1;
+  Math.max(Math.min(Math.round((arr.length - 1) * offset), arr.length - 1), 0);
 
 const translate = (v, max, min, offset, width) =>
   ((v - min) / (max - min) - offset) / width;
@@ -128,3 +130,7 @@ module.exports.closest = closest;
 module.exports.ratio = ratio;
 module.exports.bound = bound;
 module.exports.resize = resize;
+module.exports.findScale = findScale;
+module.exports.expandSteps = expandSteps;
+module.exports.preferedXSteps = preferedXSteps;
+module.exports.preferedYSteps = preferedYSteps;

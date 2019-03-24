@@ -1,4 +1,11 @@
-const { resize } = require("../utils/transformation");
+const {
+  resize,
+  closest,
+  translate,
+  preferedXSteps,
+  findScale,
+  expandSteps
+} = require("../utils/transformation");
 
 module.exports = (state, options) => {
   const element = document.createElement("canvas");
@@ -24,16 +31,45 @@ module.exports = (state, options) => {
     ctx.font = `${params.fontSize}px ${params.fontFamily}`;
     ctx.fillStyle = params.color;
 
-    // const height = ctx.canvas.height / window.devicePixelRatio;
+    const height = ctx.canvas.height - 40;
     state.minmax.y0.steps.forEach(v => {
-      var y = ctx.canvas.height - ctx.canvas.height * v.point - 4;
-
-      // if (y < params.fontSize) {
-      //   y += params.fontSize + 4;
-      // }
-
+      const y = height - height * v.point - 4;
       ctx.fillText(v.value, 0, y);
     });
+
+    const start = closest(state.columns.x, state.window.offset);
+    const end = closest(
+      state.columns.x,
+      state.window.width + state.window.offset
+    );
+
+    const borderStart = closest(state.columns.x, 0.03);
+    const borderEnd = closest(state.columns.x, 0.97);
+    const scale = findScale(start, end, 6, preferedXSteps);
+
+    for (
+      let i = Math.max(scale.min, borderStart);
+      i < Math.min(scale.max, borderEnd);
+      i += scale.step
+    ) {
+      const value = state.columns.x[i];
+
+      const dx = translate(
+        value,
+        state.minmax.x.max,
+        state.minmax.x.min,
+        state.window.offset,
+        state.window.width
+      );
+
+      const fvalue = new Date(value).toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "short"
+      });
+      const measure = ctx.measureText(fvalue);
+      const x = ctx.canvas.width * dx - measure.width / 2;
+      ctx.fillText(fvalue, x, ctx.canvas.height);
+    }
   };
 
   return {
