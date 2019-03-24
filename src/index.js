@@ -16,7 +16,8 @@ const createControls = require("./components/controls");
 const createTooltip = require("./components/tooltip");
 const createGrid = require("./components/grid");
 
-const createDOM = (element, chart, controls, preview, tooltip, grid) => {
+const createDOM = (uElement, chart, controls, preview, tooltip, grid) => {
+  const element = uElement;
   element.className = "tc-wrapper";
 
   const wrapper = document.createElement("div");
@@ -93,9 +94,9 @@ module.exports = (element, data) => {
           state.window.width
         );
 
-        state.tooltip.columns = state.ids.reduce((acc, v) => {
-          acc[v] = translate(
-            state.columns[v][index],
+        state.tooltip.columns = state.ids.reduce((acc, c) => {
+          acc[c] = translate(
+            state.columns[c][index],
             state.minmax.y0.scale.max,
             state.minmax.y0.scale.min,
             0,
@@ -130,7 +131,7 @@ module.exports = (element, data) => {
     let animation = null;
     let action = null;
 
-    const handleCancel = e => {
+    const handleCancel = () => {
       animation = engine.cancelAnimation(animation);
       action = null;
       engine.registerAnimation(createMinmaxAnimation(state, render));
@@ -158,7 +159,8 @@ module.exports = (element, data) => {
       const cursor = getCursor(offset);
 
       if (cursor === "default") {
-        return handleCancel(e);
+        handleCancel(e);
+        return;
       }
 
       action = {

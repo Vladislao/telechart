@@ -3,8 +3,7 @@ const {
   closest,
   translate,
   preferedXSteps,
-  findScale,
-  expandSteps
+  findScale
 } = require("../utils/transformation");
 
 module.exports = (state, options) => {
@@ -12,7 +11,7 @@ module.exports = (state, options) => {
   element.className = "tc-grid";
 
   const ctx = element.getContext("2d");
-  if (!ctx) throw "2d context is not supported!";
+  if (!ctx) throw new Error("2d context is not supported!");
 
   const params = Object.assign(
     {

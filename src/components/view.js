@@ -6,7 +6,7 @@ const vertical = require("../rendering/vertical");
 const horizontal = require("../rendering/horizontal");
 const point = require("../rendering/point");
 
-module.exports = (state, subscribe) => {
+module.exports = state => {
   const element = document.createElement("canvas");
   element.className = "tc-chart";
 
@@ -14,7 +14,7 @@ module.exports = (state, subscribe) => {
     element.getContext("webgl") || element.getContext("experimental-webgl");
 
   if (!gl) {
-    throw "webgl is not supported";
+    throw new Error("webgl is not supported");
   }
 
   const programs = {

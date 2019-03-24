@@ -1,4 +1,4 @@
-var engine = null;
+let engine = null;
 
 module.exports = () => {
   if (!engine) {

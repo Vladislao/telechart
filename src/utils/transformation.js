@@ -1,5 +1,5 @@
 const colorToRgba = (color, opacity) => {
-  if (~color.indexOf("rgba")) {
+  if (color.indexOf("rgba") >= 0) {
     return color
       .replace("rgba(", "")
       .split(",")
@@ -9,8 +9,11 @@ const colorToRgba = (color, opacity) => {
   const hex = color.substring(1);
 
   const num = parseInt(hex, 16);
+  // eslint-disable-next-line no-bitwise
   const red = num >> 16;
+  // eslint-disable-next-line no-bitwise
   const green = (num >> 8) & 255;
+  // eslint-disable-next-line no-bitwise
   const blue = num & 255;
 
   if (!opacity && opacity !== 0) opacity = 1;
@@ -60,7 +63,7 @@ const expandSteps = (min, max, step, count) => {
   for (let i = 0; i < count; i++) {
     const value = min + step * i;
     result.push({
-      value: value,
+      value,
       point: translate(value, max, min, 0, 1)
     });
   }
@@ -74,8 +77,8 @@ const minmax = (arr, start, end) => {
   const steps = expandSteps(scale.min, scale.max, scale.step, 7);
 
   return {
-    min: min,
-    max: max,
+    min,
+    max,
     scale,
     steps
   };
@@ -93,7 +96,7 @@ const expandCircle = count => {
   const x = [0];
   const y = [0];
 
-  for (i = 0; i <= count; i++) {
+  for (let i = 0; i <= count; i++) {
     x.push(Math.cos((i * 2 * Math.PI) / count));
     y.push(Math.sin((i * 2 * Math.PI) / count));
   }
@@ -105,13 +108,13 @@ const ratio = (a, b, width, height) => [a / width, b / height];
 const bound = (x, lower, upper) => Math.max(Math.min(x, upper), lower);
 
 const resize = gl => {
-  var realToCSSPixels = window.devicePixelRatio;
+  const realToCSSPixels = window.devicePixelRatio;
 
   // Lookup the size the browser is displaying the canvas in CSS pixels
   // and compute a size needed to make our drawingbuffer match it in
   // device pixels.
-  var displayWidth = Math.floor(gl.canvas.clientWidth * realToCSSPixels);
-  var displayHeight = Math.floor(gl.canvas.clientHeight * realToCSSPixels);
+  const displayWidth = Math.floor(gl.canvas.clientWidth * realToCSSPixels);
+  const displayHeight = Math.floor(gl.canvas.clientHeight * realToCSSPixels);
 
   // Check if the canvas is not the same size.
   if (gl.canvas.width !== displayWidth || gl.canvas.height !== displayHeight) {

@@ -1,12 +1,11 @@
 const compileShader = (gl, shaderSource, shaderType) => {
-  var shader = gl.createShader(shaderType);
+  const shader = gl.createShader(shaderType);
 
   gl.shaderSource(shader, shaderSource);
   gl.compileShader(shader);
 
-  var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-  if (!success) {
-    throw "could not compile shader:" + gl.getShaderInfoLog(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    throw new Error(`could not compile shader: ${gl.getShaderInfoLog(shader)}`);
   }
 
   return shader;
@@ -24,16 +23,15 @@ const createProgram = (gl, source) => {
     gl.FRAGMENT_SHADER
   );
 
-  var program = gl.createProgram();
+  const program = gl.createProgram();
 
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
 
   gl.linkProgram(program);
 
-  var success = gl.getProgramParameter(program, gl.LINK_STATUS);
-  if (!success) {
-    throw "program filed to link:" + gl.getProgramInfoLog(program);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    throw new Error(`program filed to link: ${gl.getProgramInfoLog(program)}`);
   }
 
   const uniforms = getParameterLocations(gl, program, gl.ACTIVE_UNIFORMS);

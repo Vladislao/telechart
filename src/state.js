@@ -4,7 +4,7 @@ const createInitialState = data => {
   const ids = Object.keys(data.names);
 
   return {
-    ids: ids,
+    ids,
     names: data.names,
     types: data.types,
     colors: data.colors,

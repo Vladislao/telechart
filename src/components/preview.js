@@ -11,7 +11,7 @@ module.exports = state => {
   const gl =
     element.getContext("webgl") || element.getContext("experimental-webgl");
   if (!gl) {
-    throw "webgl is not supported";
+    throw new Error("webgl is not supported");
   }
 
   const programs = {
