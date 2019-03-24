@@ -15,7 +15,7 @@ module.exports = (state, options) => {
 
   const params = Object.assign(
     {
-      fontSize: 24,
+      fontSize: 12,
       fontFamily: "Roboto, sans-serif",
       color: "#98A4AB"
     },
@@ -27,7 +27,9 @@ module.exports = (state, options) => {
 
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    ctx.font = `${params.fontSize}px ${params.fontFamily}`;
+    ctx.font = `${params.fontSize * window.devicePixelRatio}px ${
+      params.fontFamily
+    }`;
     ctx.fillStyle = params.color;
 
     const height = ctx.canvas.height - 40;
