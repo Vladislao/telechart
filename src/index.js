@@ -76,11 +76,9 @@ module.exports = (element, data) => {
       state.tooltip.offsetX = e.offsetX;
 
       const localOffset =
-        (e.offsetX / e.target.width) * window.devicePixelRatio * 100000;
+        (e.offsetX / e.target.width) * window.devicePixelRatio;
 
-      const deltaOffset = state.window.width * localOffset;
-
-      const offset = state.window.offset + deltaOffset / 100000;
+      const offset = state.window.offset + state.window.width * localOffset;
 
       const index = closest(state.columns.x, offset);
 

@@ -1,16 +1,22 @@
 const webgl = require("../utils/webgl");
-const source = require("../shaders/vertical");
+const source = require("../shaders/simple");
 
 const createProgram = gl => webgl.createProgram(gl, source);
 
 const createDrawingObject = (gl, programs, state) => ({
-  programInfo: programs.vertical,
+  programInfo: programs.simple,
   attributesInfo: {
-    aY: webgl.createAttributeInfo(gl, new Float32Array([0, 1]))
+    aY: webgl.createAttributeInfo(gl, new Float32Array([0, 1])),
+    aX: webgl.createAttributeInfo(gl, new Float32Array([0, 0]))
   },
   uniformsInfo: {
-    uWidth: () => ["1f", gl.canvas.width / window.devicePixelRatio],
-    uX: () => ["1f", state.tooltip.offsetX],
+    uOffset: () => {
+      return [
+        "2f",
+        [(state.tooltip.offsetX / gl.canvas.width) * window.devicePixelRatio, 0]
+      ];
+    },
+    uScale: () => ["2f", [1, 1]],
     uColor: () => ["4f", [0.5, 0.5, 0.5, 0.7]]
   },
   skip: () => state.tooltip.offsetX === null,
