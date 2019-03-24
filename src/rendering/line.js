@@ -9,8 +9,20 @@ const createDrawingObject = (gl, programs, state, id, type) => ({
     aY: webgl.createAttributeInfo(gl, state.columns[id])
   },
   uniformsInfo: {
-    uMin: () => ["2f", [state.minmax.x.min, state.minmax.y.scale.min]],
-    uMax: () => ["2f", [state.minmax.x.max, state.minmax.y.scale.max]],
+    uMin: () => [
+      "2f",
+      [
+        state.minmax.x.min,
+        type === "full" ? state.minmax.y.scale.min : state.minmax.y0.scale.min
+      ]
+    ],
+    uMax: () => [
+      "2f",
+      [
+        state.minmax.x.max,
+        type === "full" ? state.minmax.y.scale.max : state.minmax.y0.scale.max
+      ]
+    ],
     uView: () => [
       "2f",
       type === "full" ? [0, 1] : [state.window.offset, state.window.width]

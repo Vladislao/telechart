@@ -1,4 +1,4 @@
-const { colorToRgba, minmax } = require("./utils/transformation");
+const { colorToRgba, minmax, closest } = require("./utils/transformation");
 
 const createInitialState = data => {
   const ids = Object.keys(data.names);
@@ -19,8 +19,9 @@ const createInitialState = data => {
   };
 };
 
-const createCurrentState = initialState =>
-  Object.assign({}, initialState, {
+const createCurrentState = initialState => {
+  const y0 = initialState.columns[initialState.ids[0]];
+  return Object.assign({}, initialState, {
     initial: initialState,
     toggles: initialState.ids.reduce((acc, v) => {
       acc[v] = true;
@@ -33,7 +34,12 @@ const createCurrentState = initialState =>
     minmax: {
       x: minmax(initialState.columns.x),
       // xwindow: calculateWindow(initialState.columns.x, 0.7, 0.3),
-      y: minmax(initialState.ids.map(v => initialState.columns[v]))
+      y: minmax(initialState.ids.map(v => initialState.columns[v])),
+      y0: minmax(
+        initialState.ids.map(v => initialState.columns[v]),
+        closest(y0, 0.7),
+        closest(y0, 1) + 1
+      )
     },
     window: {
       offset: 0.7,
@@ -48,6 +54,7 @@ const createCurrentState = initialState =>
       columns: {}
     }
   });
+};
 
 module.exports.createInitialState = createInitialState;
 module.exports.createCurrentState = createCurrentState;

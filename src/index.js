@@ -6,7 +6,8 @@ const { bound, closest, translate } = require("./utils/transformation");
 
 const {
   createHideAnimation,
-  createShowAnimation
+  createShowAnimation,
+  createMinmaxAnimation
 } = require("./animations/toggle");
 
 const createView = require("./components/view");
@@ -66,7 +67,7 @@ module.exports = (element, data) => {
     });
   });
 
-  view.registerEvent(v => {
+  grid.registerEvent(v => {
     // TODO: touchevent
     // TODO: cross
     let animation = null;
@@ -91,8 +92,8 @@ module.exports = (element, data) => {
         state.tooltip.columns = state.ids.reduce((acc, v) => {
           acc[v] = translate(
             state.columns[v][index],
-            state.minmax.y.scale.max,
-            state.minmax.y.scale.min,
+            state.minmax.y0.scale.max,
+            state.minmax.y0.scale.min,
             0,
             1
           );
@@ -128,6 +129,7 @@ module.exports = (element, data) => {
     const handleCancel = e => {
       animation = engine.cancelAnimation(animation);
       action = null;
+      engine.registerAnimation(createMinmaxAnimation(state, render));
     };
 
     const getCursor = offset => {

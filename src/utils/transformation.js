@@ -18,18 +18,20 @@ const colorToRgba = (color, opacity) => {
   return [red / 255, green / 255, blue / 255, opacity];
 };
 
-const findMin = arr => {
+const findMin = (arr, start, end) => {
   if (!arr.length) return arr;
 
-  if (arr[0].length) return Math.min.apply(null, arr.map(v => findMin(v)));
-  return Math.min.apply(null, arr);
+  if (arr[0].length)
+    return Math.min.apply(null, arr.map(v => findMin(v, start, end)));
+  return Math.min.apply(null, arr.slice(start || 0, end || arr.length));
 };
 
-const findMax = arr => {
+const findMax = (arr, start, end) => {
   if (!arr.length) return arr;
 
-  if (arr[0].length) return Math.max.apply(null, arr.map(v => findMax(v)));
-  return Math.max.apply(null, arr);
+  if (arr[0].length)
+    return Math.max.apply(null, arr.map(v => findMax(v, start, end)));
+  return Math.max.apply(null, arr.slice(start || 0, end || arr.length));
 };
 
 const preferedSteps = [1, 1.5, 2, 2.5, 5, 7.5, 10];
@@ -63,9 +65,9 @@ const expandSteps = (min, max, step, count) => {
   return result;
 };
 
-const minmax = arr => {
-  const min = findMin(arr);
-  const max = findMax(arr);
+const minmax = (arr, start, end) => {
+  const min = findMin(arr, start, end);
+  const max = findMax(arr, start, end);
   const scale = findScale(min, max, 7);
   const steps = expandSteps(scale.min, scale.max, scale.step, 7);
 

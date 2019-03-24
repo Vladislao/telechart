@@ -1,8 +1,6 @@
 const webgl = require("../utils/webgl");
 const source = require("../shaders/simple");
 
-const { translate } = require("../utils/transformation");
-
 const createProgram = gl => webgl.createProgram(gl, source);
 
 const createDrawingObject = (gl, programs, state, i) => ({
@@ -13,12 +11,12 @@ const createDrawingObject = (gl, programs, state, i) => ({
   },
   uniformsInfo: {
     uOffset: () => {
-      return ["2f", [0, state.minmax.y.steps[i].point]];
+      return ["2f", [0, state.minmax.y0.steps[i].point]];
     },
     uScale: () => ["2f", [1, 1]],
     uColor: () => ["4f", [0.5, 0.5, 0.5, 0.7]]
   },
-  skip: () => state.minmax.y.steps[i].point > 0.98,
+  skip: () => state.minmax.y0.steps[i].point > 0.98,
   draw: () => gl.drawArrays(gl.LINES, 0, 2)
 });
 

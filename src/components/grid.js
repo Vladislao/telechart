@@ -25,7 +25,7 @@ module.exports = (state, options) => {
     ctx.fillStyle = params.color;
 
     // const height = ctx.canvas.height / window.devicePixelRatio;
-    state.minmax.y.steps.forEach(v => {
+    state.minmax.y0.steps.forEach(v => {
       var y = ctx.canvas.height - ctx.canvas.height * v.point - 4;
 
       // if (y < params.fontSize) {
@@ -38,6 +38,7 @@ module.exports = (state, options) => {
 
   return {
     element,
-    render
+    render,
+    registerEvent: callback => callback({ id: "grid", element })
   };
 };
