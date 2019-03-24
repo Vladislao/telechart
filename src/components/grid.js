@@ -32,9 +32,10 @@ module.exports = (state, options) => {
     }`;
     ctx.fillStyle = params.color;
 
-    const height = ctx.canvas.height - 40;
+    const height = ctx.canvas.height - 20 * window.devicePixelRatio;
+    const padding = 2 * window.devicePixelRatio;
     state.minmax.y0.steps.forEach(v => {
-      const y = height - height * v.point - 4;
+      const y = height - height * v.point - padding;
       ctx.fillText(v.value, 0, y);
     });
 
