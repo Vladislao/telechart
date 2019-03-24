@@ -2,12 +2,15 @@ require("./index.css");
 
 const createEngine = require("./engine");
 const { createInitialState, createCurrentState } = require("./state");
-const { bound, closest, translate } = require("./utils/transformation");
 
 const {
   createHideAnimation,
   createShowAnimation,
-  createMinmaxAnimation
+  createMinmaxAnimation,
+  createTooltipAnimation,
+  createDragAnimation,
+  createWResizeAnimation,
+  createEResizeAnimation
 } = require("./animations/toggle");
 
 const createView = require("./components/view");
@@ -43,10 +46,16 @@ module.exports = (element, data) => {
   const state = createCurrentState(initialState);
 
   const view = createView(state);
+  const grid = createGrid(state);
   const preview = createPreview(state);
   const controls = createControls(state);
   const tooltip = createTooltip(state);
-  const grid = createGrid(state);
+
+  const tooltipAnimation = createTooltipAnimation(state, () => {
+    view.render();
+    tooltip.render();
+    return true;
+  });
 
   const render = () => {
     view.render();
@@ -74,44 +83,10 @@ module.exports = (element, data) => {
     let animation = null;
     const handleMouseEvent = e => {
       state.tooltip.offsetX = e.offsetX;
-
-      const localOffset =
-        (e.offsetX / e.target.width) * window.devicePixelRatio;
-
-      const offset = state.window.offset + state.window.width * localOffset;
-
-      const index = closest(state.columns.x, offset);
-
-      if (state.tooltip.index !== index) {
-        state.tooltip.index = index;
-        state.tooltip.x = translate(
-          state.columns.x[index],
-          state.minmax.x.max,
-          state.minmax.x.min,
-          state.window.offset,
-          state.window.width
-        );
-
-        state.tooltip.columns = state.ids.reduce((acc, c) => {
-          acc[c] = translate(
-            state.columns[c][index],
-            state.minmax.y0.scale.max,
-            state.minmax.y0.scale.min,
-            0,
-            1
-          );
-          return acc;
-        }, state.tooltip.columns);
-      }
-
-      tooltip.render();
+      state.tooltip.targetWidth = e.target.width;
 
       if (animation) return;
-
-      animation = engine.registerAnimation(() => {
-        view.render();
-        return true;
-      });
+      animation = engine.registerAnimation(tooltipAnimation);
     };
 
     v.element.addEventListener("mouseenter", handleMouseEvent);
@@ -120,94 +95,77 @@ module.exports = (element, data) => {
       state.tooltip.offsetX = null;
 
       animation = engine.cancelAnimation(animation);
-      engine.registerAnimation(view.render);
-      tooltip.render();
+      engine.registerAnimation(() => {
+        view.render();
+        tooltip.render();
+        return false;
+      });
     });
   });
 
   preview.registerEvent(v => {
     let animation = null;
-    let action = null;
 
-    const handleCancel = () => {
-      animation = engine.cancelAnimation(animation);
-      action = null;
-      engine.registerAnimation(createMinmaxAnimation(state, render));
-    };
-
-    const getCursor = offset => {
+    const determineAnimation = offset => {
       if (
         offset < state.window.offset ||
         offset > state.window.offset + state.window.width
       )
-        return "default";
+        return null;
       if (
         offset > state.window.offset + 0.02 &&
         offset < state.window.offset + state.window.width - 0.02
       )
-        return "grab";
+        return createDragAnimation;
 
-      if (offset <= state.window.offset + 0.02) return "w-resize";
+      if (offset <= state.window.offset + 0.02) return createWResizeAnimation;
 
-      return "e-resize";
+      return createEResizeAnimation;
+    };
+
+    const handleCancel = () => {
+      if (!animation) return;
+      animation = engine.cancelAnimation(animation);
+      engine.registerAnimation(createMinmaxAnimation(state, render));
     };
 
     v.element.addEventListener("mousedown", e => {
       const offset = (e.offsetX / e.target.width) * window.devicePixelRatio;
-      const cursor = getCursor(offset);
+      const createPreviewAnimation = determineAnimation(offset);
 
-      if (cursor === "default") {
-        handleCancel(e);
+      if (!createPreviewAnimation) {
+        handleCancel();
         return;
       }
 
-      action = {
-        type: cursor,
-        offset: state.window.offset,
-        width: state.window.width,
-        initial: offset
-      };
+      if (animation) return;
 
-      animation = engine.registerAnimation(() => {
-        render();
-        return true;
-      });
+      state.window.offsetX = e.offsetX;
+      state.window.targetWidth = e.target.width;
+
+      animation = engine.registerAnimation(
+        createPreviewAnimation(
+          state,
+          {
+            offset: state.window.offset,
+            width: state.window.width,
+            position: offset
+          },
+          () => {
+            view.render();
+            grid.render();
+            preview.render();
+            return true;
+          }
+        )
+      );
     });
 
     v.element.addEventListener("mousemove", e => {
-      if (!action) return;
+      if (!animation) return;
 
-      const offset = (e.offsetX / e.target.width) * window.devicePixelRatio;
-      const delta = offset - action.initial;
-
-      if (action.type === "grab") {
-        state.window.offset = bound(
-          action.offset + delta,
-          0,
-          bound(1 - state.window.width, 0, 1)
-        );
-        state.window.index = closest(state.columns.x, state.window.offset);
-      }
-      if (action.type === "w-resize") {
-        state.window.width = bound(
-          action.width - delta,
-          0.2,
-          bound(1 - action.offset - delta, 0, 1)
-        );
-        state.window.offset = bound(
-          action.offset + delta,
-          0,
-          bound(1 - state.window.width, 0, 1)
-        );
-        state.window.index = closest(state.columns.x, state.window.offset);
-      }
-      if (action.type === "e-resize") {
-        state.window.width = bound(
-          action.width + delta,
-          0.2,
-          bound(1 - state.window.offset, 0, 1)
-        );
-      }
+      state.window.offsetX = e.offsetX;
+      state.window.targetWidth = e.target.width;
     });
 
     v.element.addEventListener("mouseleave", handleCancel);

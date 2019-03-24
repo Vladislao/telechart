@@ -2,7 +2,11 @@ const linear = t => t;
 
 const update = (from, to, progress) => {
   if (Array.isArray(from)) {
-    return from.map((v, i) => update(v, to[i], progress));
+    from.forEach((v, i) => {
+      from[i] = update(v, to[i], progress);
+    });
+    return from;
+    // return from.map((v, i) => update(v, to[i], progress));
   }
   if (typeof from === "object") {
     return Object.keys(from).reduce((acc, v) => {
