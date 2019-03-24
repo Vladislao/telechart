@@ -8,7 +8,7 @@ const update = (from, to, progress) => {
     return Object.keys(from).reduce((acc, v) => {
       acc[v] = update(from[v], to[v], progress);
       return acc;
-    }, {});
+    }, from);
   }
   return from + (to - from) * progress;
 };

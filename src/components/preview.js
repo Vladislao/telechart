@@ -2,6 +2,7 @@ const { createAttributeInfo } = require("../utils/webgl");
 const createRender = require("../utils/render");
 
 const line = require("../rendering/line");
+const box = require("../rendering/box");
 
 module.exports = state => {
   const element = document.createElement("canvas");
@@ -14,14 +15,18 @@ module.exports = state => {
   }
 
   const programs = {
-    line: line.createProgram(gl)
+    line: line.createProgram(gl),
+    simple: box.createProgram(gl)
   };
   const commonAttributes = {
     aX: createAttributeInfo(gl, state.columns.x)
   };
-  const drawingObjects = state.ids.map(v =>
-    line.createDrawingObject(gl, programs, state, v)
+  const lines = state.ids.map(v =>
+    line.createDrawingObject(gl, programs, state, v, "full")
   );
+  const window = box.createDrawingObject(gl, programs, state);
+
+  const drawingObjects = lines.concat(window);
 
   const render = createRender(gl, commonAttributes, drawingObjects);
 

@@ -3,12 +3,60 @@
   flex-direction: column;
 }
 
+.tc-tooltip {
+  position: absolute;
+
+  padding: 10px;
+  background-color: rgba(250, 250, 250, 0.5);
+
+  border: 1px solid #f8f8f8;
+  border-radius: 10px;
+
+  transition: transform ease-out 500ms;
+}
+
+.tc-tooltip--hidden {
+  display: none;
+}
+
+.tc-tooltip__wrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.tc-tooltip__value {
+  font-size: 12px;
+
+  display: flex;
+  flex-direction: column;
+  margin-right: 10px;
+}
+
+.tc-tooltip__value--hidden {
+  display: none;
+}
+
+.tc-tooltip__value span {
+  font-size: 14px;
+}
+
 .tc-chart {
   height: 200px;
+  margin-bottom: 10px;
+}
+
+.tc-grid {
+  position: absolute;
+  height: 200px;
+  z-index: 10;
+
+  font: 24px Roboto;
 }
 
 .tc-preview {
   height: 40px;
+  margin-bottom: 10px;
 }
 
 .tc-controls {

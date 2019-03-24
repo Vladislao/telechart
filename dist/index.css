@@ -28,22 +28,6 @@ body {
   padding: 20px;
 }
 
-.night {
-  background-color: #242f3d;
-  color: white;
-}
-
-.chart {
-  margin-bottom: 20px;
-  width: 400px;
-}
-
-.chart > h3 {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
 .switch {
   display: flex;
   justify-content: center;
@@ -52,4 +36,29 @@ body {
   color: #3c9ede;
   cursor: pointer;
   user-select: none;
+}
+
+.night {
+  background-color: #242f3d;
+  color: white;
+}
+
+.night .tc-tooltip {
+  background-color: rgba(37, 50, 64, 0.5);
+  border: 1px solid #202a37;
+}
+
+.night .tc-control {
+  border: 1px solid #202a37;
+}
+
+.chart {
+  margin-bottom: 20px;
+  width: 500px;
+}
+
+.chart > h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }

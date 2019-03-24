@@ -4,17 +4,12 @@ module.exports.VSHADER_SOURCE = `
   attribute float aX;
   attribute float aY;
 
-  uniform vec2 uMin;
-  uniform vec2 uMax;
-  uniform vec2 uView;
+  uniform vec2 uOffset;
+  uniform vec2 uScale;
 
   void main() {
-    vec2 shift = uMax - uMin;
-    vec2 position = (vec2(aX, aY) - uMin) / shift;
-    position.x = (position.x - uView.x) / uView.y;
-
+    vec2 position = vec2(aX, aY) * uScale + uOffset;
     vec2 clipSpace = (position * 2.0) - 1.0;
-
     gl_Position = vec4(clipSpace, 0, 1);
   }
 `;

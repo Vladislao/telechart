@@ -82,7 +82,7 @@ const getParameterLocations = (gl, program, pname) => {
   return locations;
 };
 
-const createAttributeInfo = (gl, data, usage, size, type) => {
+const createAttributeInfo = (gl, data, size, type, usage) => {
   const buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   gl.bufferData(gl.ARRAY_BUFFER, data, usage || gl.STATIC_DRAW);
@@ -97,7 +97,8 @@ const createAttributeInfo = (gl, data, usage, size, type) => {
 
 const setUniforms = (gl, locations, uniforms) => {
   Object.keys(locations).forEach(v => {
-    const info = uniforms[v]();
+    const value = uniforms[v];
+    const info = typeof value === "function" ? value() : value;
     const location = locations[v];
     gl[`uniform${info[0]}`].apply(gl, [location].concat(info[1]));
   });
@@ -105,7 +106,9 @@ const setUniforms = (gl, locations, uniforms) => {
 
 const setAttributes = (gl, locations, attributes) => {
   Object.keys(locations).forEach(v => {
-    const info = attributes[v];
+    const value = attributes[v];
+
+    const info = typeof value === "function" ? value() : value;
     const location = locations[v];
 
     gl.bindBuffer(gl.ARRAY_BUFFER, info.buffer);

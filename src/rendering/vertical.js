@@ -10,10 +10,10 @@ const createDrawingObject = (gl, programs, state) => ({
   },
   uniformsInfo: {
     uWidth: () => ["1f", gl.canvas.width / window.devicePixelRatio],
-    uX: () => ["1f", state.offsetX],
+    uX: () => ["1f", state.tooltip.offsetX],
     uColor: () => ["4f", [0.5, 0.5, 0.5, 0.7]]
   },
-  skip: () => state.offsetX === null,
+  skip: () => state.tooltip.offsetX === null,
   draw: () => gl.drawArrays(gl.LINE_STRIP, 0, 2)
 });
 

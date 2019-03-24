@@ -26,11 +26,27 @@ const createCurrentState = initialState =>
       acc[v] = true;
       return acc;
     }, {}),
-    colorsRGBA: Object.assign({}, initialState.colorsRGBA),
-    xminmax: minmax(initialState.columns.x),
-    yminmax: minmax(initialState.ids.map(v => initialState.columns[v])),
-    windowWidth: 0.3,
-    windowOffset: 0.7
+    colorsRGBA: initialState.ids.reduce((acc, v) => {
+      acc[v] = initialState.colorsRGBA[v].slice(0);
+      return acc;
+    }, {}),
+    minmax: {
+      x: minmax(initialState.columns.x),
+      // xwindow: calculateWindow(initialState.columns.x, 0.7, 0.3),
+      y: minmax(initialState.ids.map(v => initialState.columns[v]))
+    },
+    window: {
+      offset: 0.7,
+      width: 0.3,
+      colorsRGBA: {
+        background: colorToRgba("#000", 0.35),
+        control: colorToRgba("#000", 0.5)
+      }
+    },
+    tooltip: {
+      offsetX: null,
+      columns: {}
+    }
   });
 
 module.exports.createInitialState = createInitialState;
