@@ -1,1 +1,1 @@
-web: node ./node_modules/.bin/http-server dist
+web: npm run serve
