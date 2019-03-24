@@ -21,20 +21,6 @@ module.exports = (env, argv) => ({
       // both options are optional
       filename: "telechart.css"
     })
-    // // ...
-    // {
-    //   // anonymous plugin
-    //   apply(compiler) {
-    //     compiler.hooks.beforeRun.tapAsync("MyCustomBeforeRunPlugin", function(
-    //       compiler,
-    //       callback
-    //     ) {
-    //       // debugger
-    //       console.dir(compiler.options);
-    //       callback();
-    //     });
-    //   }
-    // }
   ],
   module: {
     rules: [
