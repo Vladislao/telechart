@@ -1,4 +1,5 @@
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 const path = require("path");
 
 module.exports = (env, argv) => ({
@@ -20,7 +21,10 @@ module.exports = (env, argv) => ({
       // Options similar to the same options in webpackOptions.output
       // both options are optional
       filename: "telechart.css"
-    })
+    }),
+    new CopyPlugin([
+      { from: "./src/polyfill.js", to: "./telechart.polyfill.js" }
+    ])
   ],
   module: {
     rules: [
