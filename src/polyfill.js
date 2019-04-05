@@ -22,7 +22,7 @@
     return Math.log(x) * Math.LOG10E;
   });
   defineProperty(Array.prototype, "find", function(predicate) {
-    if (typeof predicate === "function") {
+    if (typeof predicate !== "function") {
       throw new TypeError("Array#find: predicate must be a function");
     }
     var list = this;
