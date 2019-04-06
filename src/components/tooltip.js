@@ -4,8 +4,8 @@ const createValue = (id, state) => {
   element.className = "tc-tooltip__value";
   element.style.color = state.colors[id];
 
+  element.appendChild(document.createTextNode(state.names[id]));
   element.appendChild(value);
-  element.append(state.names[id]);
 
   return {
     id,

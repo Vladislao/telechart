@@ -8,7 +8,7 @@ const createControl = (id, state) => {
 
   const element = document.createElement("div");
   element.appendChild(checkbox);
-  element.append(name);
+  element.appendChild(document.createTextNode(name));
   element.className = "tc-control tc-checked";
 
   return element;

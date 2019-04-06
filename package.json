@@ -10,6 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "http-server dist"
   },
+  "browserslist": "> 0.25%, not dead",
   "keywords": [
     "chart",
     "webgl",
