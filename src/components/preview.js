@@ -1,38 +1,53 @@
-const { createAttributeInfo } = require("../utils/webgl");
-const createRender = require("../utils/render");
+const { resize } = require("../utils/transformation");
+// const { createAttributeInfo } = require("../utils/webgl");
+// const createRender = require("../utils/render");
 
-const line = require("../rendering/line");
-const box = require("../rendering/box");
+// const line = require("../rendering/line");
+// const box = require("../rendering/box");
 
 module.exports = state => {
-  const element = document.createElement("canvas");
-  element.className = "tc-preview";
+  const canvas = document.createElement("canvas");
+  canvas.className = "tc-preview";
 
-  const gl =
-    element.getContext("webgl") || element.getContext("experimental-webgl");
-  if (!gl) {
-    throw new Error("webgl is not supported");
-  }
-
-  const programs = {
-    line: line.createProgram(gl),
-    simple: box.createProgram(gl)
-  };
-  const commonAttributes = {
-    aX: createAttributeInfo(gl, state.columns.x)
-  };
-  const lines = state.ids.map(v =>
-    line.createDrawingObject(gl, programs, state, v, "full")
-  );
-  const window = box.createDrawingObject(gl, programs, state);
-
-  const drawingObjects = lines.concat(window);
-
-  const render = createRender(gl, commonAttributes, drawingObjects);
+  const context = canvas.getContext("2d");
 
   return {
-    element,
-    render,
-    registerEvent: callback => callback({ id: "preview", element })
+    element: canvas,
+    render: () => {
+      resize(canvas);
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      const scaleX = canvas.width / state.x.matrix[1];
+      const offsetX = -state.x.matrix[0] * scaleX;
+
+      const scaleY = -canvas.height / state.y.matrix[1];
+      const offsetY = canvas.height - state.y.matrix[0] * scaleY;
+
+      state.ids.forEach(v => {
+        const chart = state.charts[v];
+
+        if (chart.color.alpha === 0) return;
+
+        context.globalAlpha = chart.color.alpha;
+        context.strokeStyle = chart.color.hex;
+
+        context.beginPath();
+        context.lineJoin = "bevel";
+        context.lineCap = "butt";
+
+        context.moveTo(0, chart.values[0] * scaleY + offsetY);
+
+        for (let i = 1; i < state.x.values.length; i += 1) {
+          context.lineTo(
+            state.x.values[i] * scaleX + offsetX,
+            chart.values[i] * scaleY + offsetY
+          );
+        }
+
+        context.stroke();
+      });
+    },
+    register: callback => callback({ id: "preview", element: canvas })
   };
 };

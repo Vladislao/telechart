@@ -4,15 +4,23 @@ const {
 } = require("../animations/toggle");
 
 module.exports = (state, engine, render) => v => {
+  const chart = state.charts[v.id];
+  let animation = null;
   v.element.addEventListener("click", () => {
-    state.toggles[v.id] = !state.toggles[v.id];
+    // state.toggles[v.id] = !state.toggles[v.id];
+    engine.cancelAnimation(animation);
+    chart.disabled = !chart.disabled;
 
-    if (state.toggles[v.id]) {
-      v.element.classList.add("tc-checked");
-      engine.registerAnimation(createShowAnimation(v.id, state, render));
-    } else {
+    if (chart.disabled) {
       v.element.classList.remove("tc-checked");
-      engine.registerAnimation(createHideAnimation(v.id, state, render));
+      animation = engine.registerAnimation(
+        createHideAnimation(state, chart, render)
+      );
+    } else {
+      v.element.classList.add("tc-checked");
+      animation = engine.registerAnimation(
+        createShowAnimation(state, chart, render)
+      );
     }
   });
 };

@@ -59,7 +59,4 @@
       }
     }
   });
-  _define(Float32Array.prototype, "slice", function(begin, end) {
-    return new Float32Array(Array.prototype.slice.call(this, begin, end));
-  });
 })();

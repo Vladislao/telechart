@@ -10,42 +10,42 @@ module.exports = state => {
   const element = document.createElement("canvas");
   element.className = "tc-chart";
 
-  const gl =
-    element.getContext("webgl") || element.getContext("experimental-webgl");
+  // const gl =
+  //   element.getContext("webgl") || element.getContext("experimental-webgl");
 
-  if (!gl) {
-    throw new Error("webgl is not supported");
-  }
+  // if (!gl) {
+  //   throw new Error("webgl is not supported");
+  // }
 
-  const programs = {
-    line: line.createProgram(gl),
-    simple: point.createProgram(gl)
-  };
-  const commonAttributes = {
-    aX: createAttributeInfo(gl, state.columns.x)
-  };
+  // const programs = {
+  //   line: line.createProgram(gl),
+  //   simple: point.createProgram(gl)
+  // };
+  // const commonAttributes = {
+  //   aX: createAttributeInfo(gl, state.columns.x)
+  // };
 
-  const chartLines = state.ids.map(v =>
-    line.createDrawingObject(gl, programs, state, v)
-  );
-  const points = state.ids.map(v =>
-    point.createDrawingObject(gl, programs, state, v)
-  );
-  const verticalLine = vertical.createDrawingObject(gl, programs, state);
-  const horizontalLines = state.minmax.y.steps.map((v, i) =>
-    horizontal.createDrawingObject(gl, programs, state, i)
-  );
+  // const chartLines = state.ids.map(v =>
+  //   line.createDrawingObject(gl, programs, state, v)
+  // );
+  // const points = state.ids.map(v =>
+  //   point.createDrawingObject(gl, programs, state, v)
+  // );
+  // const verticalLine = vertical.createDrawingObject(gl, programs, state);
+  // const horizontalLines = state.minmax.y.steps.map((v, i) =>
+  //   horizontal.createDrawingObject(gl, programs, state, i)
+  // );
 
-  const drawingObjects = [verticalLine]
-    .concat(horizontalLines)
-    .concat(chartLines)
-    .concat(points);
+  // const drawingObjects = [verticalLine]
+  //   .concat(horizontalLines)
+  //   .concat(chartLines)
+  //   .concat(points);
 
-  const render = createRender(gl, commonAttributes, drawingObjects);
+  // const render = createRender(gl, commonAttributes, drawingObjects);
 
   return {
     element,
-    registerEvent: callback => callback({ id: "view", element }),
-    render
+    register: callback => callback({ id: "view", element }),
+    render: () => {}
   };
 };

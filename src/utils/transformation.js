@@ -1,3 +1,5 @@
+const segmentTree = require("./segmentTree");
+
 const colorToRgba = (color, opacity) => {
   if (color.indexOf("rgba") >= 0) {
     return color
@@ -70,22 +72,42 @@ const expandSteps = (min, max, step, count) => {
   return result;
 };
 
-const minmax = (arr, start, end) => {
-  const min = findMin(arr, start, end);
-  const max = findMax(arr, start, end);
-  const scale = findScale(min, max, 7, preferedYSteps);
-  const steps = expandSteps(scale.min, scale.max, scale.step, 7);
+const minmax = (state, from, to) => {
+  return state.ids.reduce(
+    (acc, v) => {
+      const chart = state.charts[v];
+      if (chart.disabled) return acc;
 
-  return {
-    min,
-    max,
-    scale,
-    steps
-  };
+      const local = segmentTree.find(
+        chart.mmtree,
+        from,
+        to,
+        chart.values.length
+      );
+
+      acc[0] = Math.min(acc[0], local[0]);
+      acc[1] = Math.max(acc[1], local[1]);
+      return acc;
+    },
+    [Infinity, -Infinity]
+  );
 };
+// const minmax = (arr, start, end) => {
+//   const min = findMin(arr, start, end);
+//   const max = findMax(arr, start, end);
+//   const scale = findScale(min, max, 7, preferedYSteps);
+//   const steps = expandSteps(scale.min, scale.max, scale.step, 7);
 
-const closest = (arr, offset) =>
-  Math.max(Math.min(Math.round((arr.length - 1) * offset), arr.length - 1), 0);
+//   return {
+//     min,
+//     max,
+//     scale,
+//     steps
+//   };
+// };
+
+const closest = (target, offset) =>
+  Math.max(Math.min(Math.round((target - 1) * offset), target - 1), 0);
 
 const translate = (v, max, min, offset, width) =>
   ((v - min) / (max - min) - offset) / width;
@@ -107,20 +129,20 @@ const ratio = (a, b, width, height) => [a / width, b / height];
 
 const bound = (x, lower, upper) => Math.max(Math.min(x, upper), lower);
 
-const resize = gl => {
+const resize = canvas => {
   const realToCSSPixels = window.devicePixelRatio;
 
   // Lookup the size the browser is displaying the canvas in CSS pixels
   // and compute a size needed to make our drawingbuffer match it in
   // device pixels.
-  const displayWidth = Math.floor(gl.canvas.clientWidth * realToCSSPixels);
-  const displayHeight = Math.floor(gl.canvas.clientHeight * realToCSSPixels);
+  const displayWidth = Math.floor(canvas.clientWidth * realToCSSPixels);
+  const displayHeight = Math.floor(canvas.clientHeight * realToCSSPixels);
 
   // Check if the canvas is not the same size.
-  if (gl.canvas.width !== displayWidth || gl.canvas.height !== displayHeight) {
+  if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
     // Make the canvas the same size
-    gl.canvas.width = displayWidth;
-    gl.canvas.height = displayHeight;
+    canvas.width = displayWidth;
+    canvas.height = displayHeight;
   }
 };
 

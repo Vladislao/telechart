@@ -1,7 +1,7 @@
 require("./index.css");
 
 const createEngine = require("./engine");
-const { createInitialState, createCurrentState } = require("./state");
+const createState = require("./state");
 
 const createView = require("./components/view");
 const createPreview = require("./components/preview");
@@ -30,47 +30,64 @@ const createDOM = (uElement, chart, controls, preview, tooltip, grid) => {
   if (tooltip) element.appendChild(tooltip);
 };
 
-module.exports = (element, data) => {
-  // TODO: check if already a canvas
-  // TODO: check caniuse
-
+module.exports = (element, data, options) => {
+  /*
+   * Engine handles rendering and initialized once on the page.
+   */
   const engine = createEngine();
 
-  const initialState = createInitialState(data);
-  const state = createCurrentState(initialState);
+  /*
+   * Calculate initial state for chart.
+   * TODO: Move to WebWorker to optimize page loading speed
+   */
+  const state = createState(data);
+  console.log(state);
 
+  /*
+   * Create components used by chart
+   * Component creators must return single object with following properties:
+   *  element  - element that will be added to the DOM tree
+   *  render   - function that updates component based on provided state once called
+   *  register - function that receives single callback, can be used to add event handlers
+   */
   const view = createView(state);
   const grid = createGrid(state);
   const preview = createPreview(state);
   const controls = createControls(state);
   const tooltip = createTooltip(state);
 
-  controls.registerEvent(
+  // Handle click events for toggle
+  controls.register(
     createControlHandlers(state, engine, () => {
-      view.render();
-      grid.render();
-      preview.render();
-    })
-  );
-  grid.registerEvent(
-    createTooltipHandler(state, engine, () => {
-      view.render();
-      tooltip.render();
-    })
-  );
-  preview.registerEvent(
-    createPreviewHandler(state, engine, () => {
-      view.render();
-      grid.render();
+      // view.render();
+      // grid.render();
       preview.render();
     })
   );
 
-  // render our initial state once
+  // // Handle mouseover and click events for zooming and tooltip
+  // grid.register(
+  //   createTooltipHandler(state, engine, () => {
+  //     view.render();
+  //     tooltip.render();
+  //   })
+  // );
+
+  // // Handle mouse and touch events for preview intercations
+  // preview.register(
+  //   createPreviewHandler(state, engine, () => {
+  //     view.render();
+  //     grid.render();
+  //     preview.render();
+  //   })
+  // );
+
+  // Render all components for the first time
   engine.registerAnimation(view.render);
   engine.registerAnimation(grid.render);
   engine.registerAnimation(preview.render);
 
+  // Add elements to the DOM tree
   createDOM(
     element,
     view.element,
@@ -80,5 +97,7 @@ module.exports = (element, data) => {
     grid.element
   );
 
+  // TODO: Destroy, update options, update data
+  // TODO: Might be an API
   return state;
 };
