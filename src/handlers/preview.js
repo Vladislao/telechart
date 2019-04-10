@@ -1,44 +1,71 @@
-const { createMinmaxAnimation } = require("../animations/common");
+const { bound } = require("../utils/transformation");
 const {
-  createDragAnimation,
-  createWResizeAnimation,
-  createEResizeAnimation
+  createScrollAnimation,
+  createInspectAnimation
 } = require("../animations/drag");
 
-const determineAnimation = (state, offset) => {
-  if (
-    offset < state.window.offset ||
-    offset > state.window.offset + state.window.width
-  )
-    return null;
-  if (
-    offset > state.window.offset + 0.02 &&
-    offset < state.window.offset + state.window.width - 0.02
-  )
-    return createDragAnimation;
+const determineAction = (state, offsetX, width) => {
+  const scaleX = width / state.x.matrix[1];
+  const trackerWidth = state.window.tracker.width * window.devicePixelRatio;
 
-  if (offset <= state.window.offset + 0.02) return createWResizeAnimation;
+  const leftTrackX = state.window.offset * scaleX;
+  const rightTrackX = (state.window.offset + state.window.width - 1) * scaleX;
 
-  return createEResizeAnimation;
+  if (offsetX < leftTrackX || offsetX > rightTrackX) return "scroll";
+
+  if (
+    offsetX > leftTrackX + trackerWidth &&
+    offsetX < rightTrackX - trackerWidth
+  )
+    return "drag";
+
+  if (offsetX >= leftTrackX && offsetX <= leftTrackX + trackerWidth)
+    return "resize-left";
+
+  return "resize-right";
 };
 
 module.exports = (state, engine, render) => v => {
+  const listenerOptions = engine.passiveSupported ? { passive: true } : false;
   let event = null;
   let animation = null;
-  // let initialPageX = null;
-  // let step = null;
 
-  const handleStart = (pageX, target) => {
+  const handleInspect = (offsetX, pageX, target) => {
+    const width = target.width / window.devicePixelRatio;
+    const scaleX = width / state.x.values.length;
+
+    const inspectEvent = {
+      offset: bound(
+        offsetX / scaleX - state.window.minwidth / 2,
+        0,
+        state.x.values.length - state.window.minwidth
+      ),
+      width: state.window.minwidth
+    };
+
+    engine.registerAnimation(
+      createInspectAnimation(state, inspectEvent, render)
+    );
+  };
+
+  const handleStart = (offsetX, pageX, target) => {
     if (event) return;
 
+    const width = target.width / window.devicePixelRatio;
+
     event = {
+      type: determineAction(
+        state,
+        offsetX * window.devicePixelRatio,
+        target.width
+      ),
       initialPageX: pageX,
-      step: (window.devicePixelRatio * state.x.values.length) / target.width,
+      step: state.x.values.length / width,
       pageX
     };
 
     animation = engine.registerAnimation(
-      createWResizeAnimation(state, event, render)
+      createScrollAnimation(state, event, render)
     );
   };
 
@@ -46,7 +73,6 @@ module.exports = (state, engine, render) => v => {
     if (event === null) return;
 
     event.pageX = e.pageX;
-    // if (state.window.index !==)
   };
 
   const handleCancel = () => {
@@ -59,9 +85,17 @@ module.exports = (state, engine, render) => v => {
   v.element.addEventListener(
     "mousedown",
     e => {
-      handleStart(e.pageX, e.target);
+      handleStart(e.offsetX, e.pageX, e.target);
     },
-    engine.passiveSupported ? { passive: true } : false
+    listenerOptions
+  );
+
+  v.element.addEventListener(
+    "dblclick",
+    e => {
+      handleInspect(e.offsetX, e.pageX, e.target);
+    },
+    listenerOptions
   );
 
   engine.addEventListener("mousemove", handleMove);

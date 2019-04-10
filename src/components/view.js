@@ -25,9 +25,9 @@ module.exports = state => {
 
       const start = Math.max(offset, 0);
       const end = Math.min(offset + width, state.x.values.length);
-      const range = end - start;
+      const range = end - start - 1;
 
-      const scaleX = canvas.width / range;
+      const scaleX = canvas.width / (range + state.window.width - width);
       const offsetX = -scaleX * (state.window.offset - offset);
 
       const scaleY = -canvas.height / state.y0.matrix[1];

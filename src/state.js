@@ -46,7 +46,7 @@ const create = data => {
     charts,
     x: {
       values: x,
-      matrix: [0, x.length]
+      matrix: [0, x.length - 1]
     },
     x0: {
       matrix: [windowOffset, x.length - windowOffset]

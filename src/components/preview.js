@@ -67,7 +67,7 @@ module.exports = state => {
       const borderRadius = 5 * window.devicePixelRatio;
       const leftTrackX = state.window.offset * scaleX + trackerWidth;
       const rightTrackX =
-        leftTrackX + state.window.width * scaleX - trackerWidth;
+        (state.window.offset + state.window.width - 1) * scaleX - trackerWidth;
 
       const mask = state.window.mask;
       context.globalAlpha = mask.color.alpha;
