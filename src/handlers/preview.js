@@ -23,71 +23,77 @@ const determineAnimation = (state, offset) => {
 };
 
 module.exports = (state, engine, render) => v => {
+  let event = null;
   let animation = null;
+  // let initialPageX = null;
+  // let step = null;
 
-  const handleCancel = () => {
-    if (!animation) return;
+  const handleStart = (pageX, target) => {
+    if (event) return;
 
-    animation = engine.cancelAnimation(animation);
-    engine.registerAnimation(createMinmaxAnimation(state, render));
-  };
-
-  const handleStart = (offsetX, targetWidth) => {
-    if (animation) return;
-
-    const offset = (offsetX / targetWidth) * window.devicePixelRatio;
-    const createPreviewAnimation = determineAnimation(state, offset);
-
-    if (!createPreviewAnimation) {
-      // handleCancel();
-      return;
-    }
-
-    state.window.offsetX = offsetX;
-    state.window.targetWidth = targetWidth;
+    event = {
+      initialPageX: pageX,
+      step: (window.devicePixelRatio * state.x.values.length) / target.width,
+      pageX
+    };
 
     animation = engine.registerAnimation(
-      createPreviewAnimation(
-        state,
-        {
-          offset: state.window.offset,
-          width: state.window.width,
-          position: offset
-        },
-        () => {
-          render();
-          return true;
-        }
-      )
+      createWResizeAnimation(state, event, render)
     );
   };
 
-  v.element.addEventListener("mousedown", e => {
-    handleStart(e.offsetX, e.target.width);
-  });
-  v.element.addEventListener("touchstart", e => {
-    const rect = e.target.getBoundingClientRect();
-    const offsetX = e.targetTouches[0].pageX - rect.left;
-    handleStart(offsetX, e.target.width);
-  });
+  const handleMove = e => {
+    if (event === null) return;
 
-  v.element.addEventListener("touchmove", e => {
-    if (!animation) return;
+    event.pageX = e.pageX;
+    // if (state.window.index !==)
+  };
 
-    const rect = e.target.getBoundingClientRect();
+  const handleCancel = () => {
+    if (!event) return;
 
-    state.window.offsetX = e.targetTouches[0].pageX - rect.left;
-    state.window.targetWidth = e.target.width;
-  });
-  v.element.addEventListener("mousemove", e => {
-    if (!animation) return;
+    event = null;
+    animation = engine.cancelAnimation(animation);
+  };
 
-    state.window.offsetX = e.offsetX;
-    state.window.targetWidth = e.target.width;
-  });
+  v.element.addEventListener(
+    "mousedown",
+    e => {
+      handleStart(e.pageX, e.target);
+    },
+    engine.passiveSupported ? { passive: true } : false
+  );
 
-  v.element.addEventListener("mouseleave", handleCancel);
-  v.element.addEventListener("mouseup", handleCancel);
-  v.element.addEventListener("touchcancel", handleCancel);
-  v.element.addEventListener("touchend", handleCancel);
+  engine.addEventListener("mousemove", handleMove);
+  engine.addEventListener("mouseup", handleCancel);
+
+  // v.element.addEventListener(
+  //   "touchstart",
+  //   e => {
+  //     const rect = e.target.getBoundingClientRect();
+  //     const offsetX = e.targetTouches[0].pageX - rect.left;
+  //     handleStart(offsetX, e.target.width);
+  //   },
+  //   engine.passiveSupported ? { passive: true } : false
+  // );
+
+  // v.element.addEventListener("touchmove", e => {
+  //   if (!animation) return;
+
+  //   const rect = e.target.getBoundingClientRect();
+
+  //   state.window.offsetX = e.targetTouches[0].pageX - rect.left;
+  //   state.window.targetWidth = e.target.width;
+  // });
+  // v.element.addEventListener("mousemove", e => {
+  //   if (!animation) return;
+
+  //   state.window.offsetX = e.offsetX;
+  //   state.window.targetWidth = e.target.width;
+  // });
+
+  // v.element.addEventListener("mouseleave", handleCancel);
+  // v.element.addEventListener("mouseup", handleCancel);
+  // v.element.addEventListener("touchcancel", handleCancel);
+  // v.element.addEventListener("touchend", handleCancel);
 };

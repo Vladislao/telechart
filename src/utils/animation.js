@@ -1,6 +1,7 @@
 const linear = t => t;
 const easeInOutCubic = t =>
   t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+const easeOutCubic = t => --t * t * t + 1;
 const easeInOutQuad = t => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
 
 const update = (state, from, to, progress) => {
@@ -56,7 +57,7 @@ const animate = (from, to, step, options) => {
 
     const elapsed = now - params.start;
 
-    if (elapsed < options.delay) {
+    if (elapsed < params.delay) {
       return true;
     }
 
@@ -65,8 +66,6 @@ const animate = (from, to, step, options) => {
     const progress = finished
       ? 1
       : Math.min(Math.max(params.easing(elapsed / params.duration), 0), 1);
-
-    console.log(elapsed, progress);
 
     step(update(state, from, to, progress));
 
@@ -77,4 +76,5 @@ const animate = (from, to, step, options) => {
 module.exports.animate = animate;
 module.exports.linear = linear;
 module.exports.easeInOutCubic = easeInOutCubic;
+module.exports.easeOutCubic = easeOutCubic;
 module.exports.easeInOutQuad = easeInOutQuad;

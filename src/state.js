@@ -29,10 +29,15 @@ const create = data => {
 
   const x = getValues(data.columns, "x");
 
-  const windowOffsetIndex = closest(x.length, 0.7);
+  const windowOffset = closest(x.length, 0.6);
+  const windowWidth = closest(x.length, 0.3);
 
   const globalYMinmax = minmax({ ids, charts }, 0, x.length);
-  const windowYMinmax = minmax({ ids, charts }, windowOffsetIndex, x.length);
+  const windowYMinmax = minmax(
+    { ids, charts },
+    windowOffset,
+    windowOffset + windowWidth
+  );
 
   // TODO: matrix to transform
 
@@ -41,7 +46,10 @@ const create = data => {
     charts,
     x: {
       values: x,
-      matrix: [x[0], x[x.length - 1] - x[0]]
+      matrix: [0, x.length]
+    },
+    x0: {
+      matrix: [windowOffset, x.length - windowOffset]
     },
     y: {
       // minmax: globalYMinmax,
@@ -52,9 +60,26 @@ const create = data => {
       matrix: [windowYMinmax[0], windowYMinmax[1] - windowYMinmax[0]]
     },
     window: {
-      offset: 0.7,
-      width: 0.3,
-      index: windowOffsetIndex
+      offset: windowOffset,
+      width: windowWidth,
+      minwidth: closest(x.length, 0.2),
+      tracker: {
+        width: 10,
+        stroke: {
+          hex: "#C0D1E1",
+          alpha: 1
+        },
+        color: {
+          hex: "#C0D1E1",
+          alpha: 1
+        }
+      },
+      mask: {
+        color: {
+          hex: "#E2EEF9",
+          alpha: 0.6
+        }
+      }
     },
     tooltip: {
       offset: null

@@ -1,51 +1,63 @@
-const { createAttributeInfo } = require("../utils/webgl");
-const createRender = require("../utils/render");
+const { resize } = require("../utils/transformation");
+// const { createAttributeInfo } = require("../utils/webgl");
+// const createRender = require("../utils/render");
 
-const line = require("../rendering/line");
-const vertical = require("../rendering/vertical");
-const horizontal = require("../rendering/horizontal");
-const point = require("../rendering/point");
+// const line = require("../rendering/line");
+// const vertical = require("../rendering/vertical");
+// const horizontal = require("../rendering/horizontal");
+// const point = require("../rendering/point");
 
 module.exports = state => {
-  const element = document.createElement("canvas");
-  element.className = "tc-chart";
+  const canvas = document.createElement("canvas");
+  canvas.className = "tc-chart";
 
-  // const gl =
-  //   element.getContext("webgl") || element.getContext("experimental-webgl");
-
-  // if (!gl) {
-  //   throw new Error("webgl is not supported");
-  // }
-
-  // const programs = {
-  //   line: line.createProgram(gl),
-  //   simple: point.createProgram(gl)
-  // };
-  // const commonAttributes = {
-  //   aX: createAttributeInfo(gl, state.columns.x)
-  // };
-
-  // const chartLines = state.ids.map(v =>
-  //   line.createDrawingObject(gl, programs, state, v)
-  // );
-  // const points = state.ids.map(v =>
-  //   point.createDrawingObject(gl, programs, state, v)
-  // );
-  // const verticalLine = vertical.createDrawingObject(gl, programs, state);
-  // const horizontalLines = state.minmax.y.steps.map((v, i) =>
-  //   horizontal.createDrawingObject(gl, programs, state, i)
-  // );
-
-  // const drawingObjects = [verticalLine]
-  //   .concat(horizontalLines)
-  //   .concat(chartLines)
-  //   .concat(points);
-
-  // const render = createRender(gl, commonAttributes, drawingObjects);
+  const context = canvas.getContext("2d");
 
   return {
-    element,
-    register: callback => callback({ id: "view", element }),
-    render: () => {}
+    element: canvas,
+    render: () => {
+      resize(canvas);
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      const offset = Math.floor(state.window.offset);
+      const width = Math.floor(state.window.width);
+
+      const start = Math.max(offset, 0);
+      const end = Math.min(offset + width, state.x.values.length);
+      const range = end - start;
+
+      const scaleX = canvas.width / range;
+      const offsetX = -scaleX * (state.window.offset - offset);
+
+      const scaleY = -canvas.height / state.y0.matrix[1];
+      const offsetY = canvas.height - state.y0.matrix[0] * scaleY;
+
+      context.lineJoin = "bevel";
+      context.lineCap = "butt";
+      context.lineWidth = 1 * window.devicePixelRatio;
+
+      state.ids.forEach(v => {
+        const chart = state.charts[v];
+
+        if (chart.color.alpha === 0) return;
+
+        context.globalAlpha = chart.color.alpha;
+        context.strokeStyle = chart.color.hex;
+
+        context.beginPath();
+        context.moveTo(offsetX, chart.values[start] * scaleY + offsetY);
+
+        for (let i = 1; i < end; i += 1) {
+          context.lineTo(
+            i * scaleX + offsetX,
+            chart.values[start + i] * scaleY + offsetY
+          );
+        }
+
+        context.stroke();
+      });
+    },
+    register: callback => callback({ id: "view", element: canvas })
   };
 };

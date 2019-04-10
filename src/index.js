@@ -58,11 +58,7 @@ module.exports = (element, data, options) => {
 
   // Handle click events for toggle
   controls.register(
-    createControlHandlers(state, engine, () => {
-      // view.render();
-      // grid.render();
-      preview.render();
-    })
+    createControlHandlers(state, engine, [view.render, preview.render])
   );
 
   // // Handle mouseover and click events for zooming and tooltip
@@ -73,19 +69,19 @@ module.exports = (element, data, options) => {
   //   })
   // );
 
-  // // Handle mouse and touch events for preview intercations
-  // preview.register(
-  //   createPreviewHandler(state, engine, () => {
-  //     view.render();
-  //     grid.render();
-  //     preview.render();
-  //   })
-  // );
+  // Handle mouse and touch events for preview interactions
+  preview.register(
+    createPreviewHandler(state, engine, [
+      view.render,
+      grid.render,
+      preview.render
+    ])
+  );
 
   // Render all components for the first time
-  engine.registerAnimation(view.render);
-  engine.registerAnimation(grid.render);
-  engine.registerAnimation(preview.render);
+  engine.registerAnimation({
+    draw: [view.render, grid.render, preview.render]
+  });
 
   // Add elements to the DOM tree
   createDOM(
