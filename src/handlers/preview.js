@@ -26,7 +26,7 @@ const determineAction = (state, offsetX, width) => {
 };
 
 module.exports = (state, engine, render) => v => {
-  const listenerOptions = engine.passiveSupported ? { passive: true } : false;
+  // const listenerOptions = engine.passiveSupported ? { passive: true } : false;
   let event = null;
   let animation = null;
 
@@ -43,7 +43,8 @@ module.exports = (state, engine, render) => v => {
       width: state.window.minwidth
     };
 
-    engine.registerAnimation(
+    engine.cancelAnimation(animation);
+    animation = engine.registerAnimation(
       createInspectAnimation(state, inspectEvent, render)
     );
   };
@@ -61,9 +62,11 @@ module.exports = (state, engine, render) => v => {
       ),
       initialPageX: pageX,
       step: state.x.values.length / width,
-      pageX
+      pageX,
+      done: false
     };
 
+    engine.cancelAnimation(animation);
     animation = engine.registerAnimation(
       createScrollAnimation(state, event, render)
     );
@@ -78,24 +81,26 @@ module.exports = (state, engine, render) => v => {
   const handleCancel = () => {
     if (!event) return;
 
+    event.done = true;
     event = null;
-    animation = engine.cancelAnimation(animation);
   };
 
   v.element.addEventListener(
     "mousedown",
     e => {
+      e.preventDefault();
       handleStart(e.offsetX, e.pageX, e.target);
     },
-    listenerOptions
+    false
   );
 
   v.element.addEventListener(
     "dblclick",
     e => {
+      e.preventDefault();
       handleInspect(e.offsetX, e.pageX, e.target);
     },
-    listenerOptions
+    false
   );
 
   engine.addEventListener("mousemove", handleMove);

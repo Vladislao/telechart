@@ -29,7 +29,7 @@ const create = data => {
 
   const x = getValues(data.columns, "x");
 
-  const windowOffset = closest(x.length, 0.6);
+  const windowOffset = 0; //closest(x.length, 0.6);
   const windowWidth = closest(x.length, 0.3);
 
   const globalYMinmax = minmax({ ids, charts }, 0, x.length);
@@ -49,7 +49,7 @@ const create = data => {
       matrix: [0, x.length - 1]
     },
     x0: {
-      matrix: [windowOffset, x.length - windowOffset]
+      matrix: [windowOffset, windowWidth]
     },
     y: {
       // minmax: globalYMinmax,
@@ -83,6 +83,15 @@ const create = data => {
     },
     tooltip: {
       offset: null
+    },
+    axis: {
+      font: "Arial",
+      size: 10,
+      steps: null,
+      color: {
+        hex: "#8E8E93",
+        alpha: 1
+      }
     }
   };
 };

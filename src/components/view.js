@@ -1,11 +1,5 @@
-const { resize } = require("../utils/transformation");
-// const { createAttributeInfo } = require("../utils/webgl");
-// const createRender = require("../utils/render");
-
-// const line = require("../rendering/line");
-// const vertical = require("../rendering/vertical");
-// const horizontal = require("../rendering/horizontal");
-// const point = require("../rendering/point");
+const { resize, formatDate } = require("../utils/transformation");
+const createCache = require("../utils/cache");
 
 module.exports = state => {
   const canvas = document.createElement("canvas");
@@ -13,25 +7,53 @@ module.exports = state => {
 
   const context = canvas.getContext("2d");
 
+  const lcache = createCache();
+
   return {
     element: canvas,
     render: () => {
-      resize(canvas);
+      const resizeTriggered = resize(canvas);
 
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      const lc = lcache(
+        c =>
+          c.offset !== state.window.offset ||
+          c.width !== state.window.width ||
+          c.length !== state.x.values.length ||
+          resizeTriggered,
+        c => {
+          c.length = state.x.values.length;
+          c.offset = state.window.offset;
+          c.width = state.window.width;
 
-      const offset = Math.floor(state.window.offset);
-      const width = Math.floor(state.window.width);
+          // c.range = Math.floor(state.window.width) - 1;
+          // c.offsetDelta = state.window.offset - c.offset;
+          // c.widthDelta = state.window.width - c.width;
 
-      const start = Math.max(offset, 0);
-      const end = Math.min(offset + width, state.x.values.length);
-      const range = end - start - 1;
+          // const end = c.offset + c.width;
+        }
+      );
+
+      const offset = Math.floor(lc.offset);
+      const width = Math.floor(lc.width);
+
+      const textMargin = 2 * window.devicePixelRatio;
+      const textSize = (state.axis.size || 10) * window.devicePixelRatio;
+      const padding = textSize + textMargin * 2;
+
+      const height = canvas.height - padding;
+
+      const end = offset + width;
+      const range = end - offset - 1;
+      const last = range + 2;
 
       const scaleX = canvas.width / (range + state.window.width - width);
       const offsetX = -scaleX * (state.window.offset - offset);
 
-      const scaleY = -canvas.height / state.y0.matrix[1];
-      const offsetY = canvas.height - state.y0.matrix[0] * scaleY;
+      const scaleY = -height / state.y0.matrix[1];
+      const offsetY = height - state.y0.matrix[0] * scaleY;
+
+      // draw lines
+      context.clearRect(0, 0, canvas.width, canvas.height);
 
       context.lineJoin = "bevel";
       context.lineCap = "butt";
@@ -46,17 +68,95 @@ module.exports = state => {
         context.strokeStyle = chart.color.hex;
 
         context.beginPath();
-        context.moveTo(offsetX, chart.values[start] * scaleY + offsetY);
 
-        for (let i = 1; i < end; i += 1) {
+        for (let i = 0; i < last; i += 1) {
           context.lineTo(
             i * scaleX + offsetX,
-            chart.values[start + i] * scaleY + offsetY
+            chart.values[offset + i] * scaleY + offsetY
           );
         }
 
         context.stroke();
       });
+
+      // draw bottom text
+
+      context.font = `${state.axis.size * devicePixelRatio}px ${
+        state.axis.font
+      }`;
+      context.fillStyle = state.axis.color.hex;
+
+      // ширина текста в пикселях
+      const textWidth = Math.ceil(
+        context.measureText(formatDate(state.x.values[0], true)).width
+      );
+
+      const textSteps =
+        state.axis.steps || Math.max(canvas.width / (textWidth * 2), 1);
+
+      // минимально возможный шаг
+      const textMinStep = (state.window.minwidth - 1) / textSteps;
+      // текущий шаг
+      const textLocalStep = range / textSteps;
+
+      // отношение к минимальному шагу
+      const textMagnitude = textLocalStep / textMinStep;
+      // целая часть множителя
+      const textMagnitudeInteger = Math.floor(textMagnitude);
+      // дробная часть множителя
+      const textFraction = textMagnitude - textMagnitudeInteger;
+      // четность множителя
+      const primary = textMagnitudeInteger % 2;
+
+      // оптимальный текущий шаг
+      const textStep =
+        Math.max(textMagnitudeInteger - primary, 1) * Math.ceil(textMinStep);
+
+      const textPadding = Math.floor(textMinStep / 2);
+      const textDoubleStep = Math.ceil(textStep * 2);
+
+      // ближайший справа к первому на графике индекс кратный шагу
+      const textClosest = Math.ceil(offset / textStep) * textStep;
+      // индекс первого элемента с датой
+      const textStart = Math.max(textClosest, textStep) - textPadding;
+
+      // конечный элемент
+      const textLast = offset + last;
+
+      // сдвиг
+      const textOffsetX = offsetX - Math.floor(textWidth / 2);
+
+      const textBaseAlpha = state.axis.color.alpha;
+      const bottomCorner = canvas.height - textMargin;
+
+      context.globalAlpha = textBaseAlpha;
+
+      for (let i = -textPadding; i <= textLast; i += textDoubleStep) {
+        if (i < textStart) continue;
+
+        const indexShift = i - offset;
+
+        context.fillText(
+          formatDate(state.x.values[i], true),
+          indexShift * scaleX + textOffsetX,
+          bottomCorner
+        );
+      }
+
+      context.globalAlpha = primary
+        ? textBaseAlpha - textFraction
+        : textBaseAlpha;
+
+      for (let i = textStep - textPadding; i <= textLast; i += textDoubleStep) {
+        if (i < textStart) continue;
+        const indexShift = i - offset;
+
+        context.fillText(
+          formatDate(state.x.values[i], true),
+          indexShift * scaleX + textOffsetX,
+          bottomCorner
+        );
+      }
     },
     register: callback => callback({ id: "view", element: canvas })
   };

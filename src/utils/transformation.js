@@ -92,19 +92,33 @@ const minmax = (state, from, to) => {
     [Infinity, -Infinity]
   );
 };
-// const minmax = (arr, start, end) => {
-//   const min = findMin(arr, start, end);
-//   const max = findMax(arr, start, end);
-//   const scale = findScale(min, max, 7, preferedYSteps);
-//   const steps = expandSteps(scale.min, scale.max, scale.step, 7);
 
-//   return {
-//     min,
-//     max,
-//     scale,
-//     steps
-//   };
-// };
+const MONTH = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec"
+];
+const DAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const formatDate = (v, short) => {
+  const datetime = new Date(v);
+  const date = datetime.getDate();
+  const month = `${MONTH[datetime.getMonth()]} ${date > 9 ? date : `0${date}`}`;
+  if (short) return month;
+
+  return `${DAY[datetime.getDay()]}, ${month}`;
+};
+
+const formatValue = v => {};
 
 const closest = (target, offset) =>
   Math.max(Math.min(Math.round((target - 1) * offset), target - 1), 0);
@@ -143,9 +157,13 @@ const resize = canvas => {
     // Make the canvas the same size
     canvas.width = displayWidth;
     canvas.height = displayHeight;
+    return true;
   }
+
+  return false;
 };
 
+module.exports.formatDate = formatDate;
 module.exports.colorToRgba = colorToRgba;
 module.exports.minmax = minmax;
 module.exports.translate = translate;

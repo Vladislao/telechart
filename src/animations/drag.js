@@ -76,7 +76,10 @@ const createScrollAnimation = (state, event, render) => {
     draw: render,
     update: ms => {
       if (animation) {
-        animation(ms);
+        const running = animation(ms);
+        if (!running) {
+          animation = null;
+        }
       }
 
       const shift = Math.ceil((event.pageX - event.initialPageX) * event.step);
@@ -93,7 +96,7 @@ const createScrollAnimation = (state, event, render) => {
         current.shift = shift;
       }
 
-      return true;
+      return animation !== null || !event.done;
     }
   };
 };
