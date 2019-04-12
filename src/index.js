@@ -12,20 +12,14 @@ const createControlHandlers = require("./handlers/controls");
 const createTooltipHandler = require("./handlers/tooltip");
 const createPreviewHandler = require("./handlers/preview");
 
-const createDOM = (uElement, chart, controls, preview, tooltip) => {
-  const element = uElement;
+const createDOM = (element, chart, controls, preview, tooltip) => {
   element.className = "tc-wrapper";
 
-  const wrapper = document.createElement("div");
-  wrapper.className = "tc-chart-wrapper";
+  if (tooltip) chart.appendChild(tooltip);
 
-  if (chart) wrapper.appendChild(chart);
-
-  element.appendChild(wrapper);
-
+  element.appendChild(chart);
   if (preview) element.appendChild(preview);
   if (controls) element.appendChild(controls);
-  if (tooltip) element.appendChild(tooltip);
 };
 
 module.exports = (element, data, options) => {

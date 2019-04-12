@@ -9,7 +9,7 @@ module.exports = (state, engine, render) => v => {
 
     event = {
       offsetX,
-      step: (window.devicePixelRatio * state.window.width) / width,
+      step: state.window.width / width,
       done: false
     };
 
@@ -32,16 +32,26 @@ module.exports = (state, engine, render) => v => {
   };
 
   engine.addEventListener("mousemove", e => {
-    if (e.target !== v.element) return;
+    if (e.target !== v.canvas) return;
     if (event) handleMove(e.offsetX);
-    else handleStart(e.offsetX, e.target.width);
+    else handleStart(e.offsetX, e.target.offsetWidth);
   });
   v.element.addEventListener(
     "mouseenter",
-    e => handleStart(e.offsetX, e.target.width),
+    e => {
+      if (e.target !== v.canvas) return;
+      handleStart(e.offsetX, e.target.offsetWidth);
+    },
     engine.passive
   );
-  v.element.addEventListener("mouseleave", handleCancel, engine.passive);
+  v.element.addEventListener(
+    "mouseleave",
+    e => {
+      // if (e.target !== v.canvas) return;
+      handleCancel();
+    },
+    engine.passive
+  );
 };
 
 // const handleStart = (offsetX, targetWidth) => {

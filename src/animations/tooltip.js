@@ -23,6 +23,8 @@ const createTooltipAnimation = (state, event, render) => {
       const x = Math.floor(event.offsetX * event.step);
 
       if (x !== previousX) {
+        const indexX = Math.round(x / event.step);
+
         if (state.tooltip.x) {
           animation = animate(
             state.tooltip.x,
@@ -30,12 +32,14 @@ const createTooltipAnimation = (state, event, render) => {
             step => {
               state.tooltip.x = step;
               state.tooltip.index = x;
+              state.tooltip.indexX = indexX;
             },
             { start: ms, duration: 150 }
           );
         } else {
           state.tooltip.x = x;
           state.tooltip.index = x;
+          state.tooltip.indexX = indexX;
         }
         previousX = x;
       }

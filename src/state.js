@@ -54,7 +54,7 @@ const create = data => {
       matrix: [globalYMinmax[0], globalYMinmax[1] - globalYMinmax[0]]
     },
     y0: {
-      width: 1,
+      width: 2,
       matrix: windowYScale
     },
     window: {

@@ -46,35 +46,13 @@ const createValue = chart => {
 
 module.exports = state => {
   const element = document.createElement("div");
-  element.className = "tc-tooltip tc-tooltip--hidden";
-
-  const name = document.createElement("div");
-  name.className = "tc-tooltip__name";
-
-  const wrapper = document.createElement("div");
-  wrapper.className = "tc-tooltip__wrapper";
-
-  const values = state.ids.map(v => {
-    const value = createValue(state.charts[v]);
-    wrapper.appendChild(value.element);
-
-    return value;
-  });
-
-  element.appendChild(name);
-  element.appendChild(wrapper);
+  element.className = "tc-range";
 
   const cache = createCache();
-
-  let width = null;
 
   return {
     element,
     render: () => {
-      if (!width) {
-        width = element.clientWidth / 2;
-      }
-
       cache(
         c => c.index !== state.tooltip.index,
         c => {

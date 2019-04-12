@@ -8,9 +8,13 @@ const {
 } = require("../rendering/grid");
 
 module.exports = state => {
+  const wrapper = document.createElement("div");
+  wrapper.className = "tc-chart-wrapper";
+
   const canvas = document.createElement("canvas");
   canvas.className = "tc-chart";
 
+  wrapper.appendChild(canvas);
   const context = canvas.getContext("2d");
 
   const tcache = {};
@@ -25,16 +29,22 @@ module.exports = state => {
   const lcache = {};
   const linesCache = createCache(lcache);
 
+  let resizedOnce = false;
+
   return {
-    element: canvas,
+    element: wrapper,
+    register: callback => callback({ id: "view", element: wrapper, canvas }),
+
     render: () => {
+      if (!resizedOnce) {
+        resize(canvas);
+        resizedOnce = true;
+      }
       // TODO: options
       const formatter = formatDate;
 
-      const resizeTriggered = resize(canvas);
-
-      let shouldDrawLines = resizeTriggered;
-      let shouldDrawText = resizeTriggered;
+      let shouldDrawLines = false;
+      let shouldDrawText = false;
 
       // update font size
       const fontSizeChanged = textCache(
@@ -53,8 +63,7 @@ module.exports = state => {
         c =>
           c.offset !== state.window.offset ||
           c.width !== state.window.width ||
-          c.length !== state.x.values.length ||
-          resizeTriggered,
+          c.length !== state.x.values.length,
         c => {
           c.length = state.x.values.length;
           c.offset = state.window.offset;
@@ -72,7 +81,7 @@ module.exports = state => {
 
       // update tooltip position
       const tooltipChanged = tooltipCache(
-        c => c.x !== state.tooltip.x || xBoundsChanged || resizeTriggered,
+        c => c.x !== state.tooltip.x || xBoundsChanged,
         c => {
           c.x = state.tooltip.x;
           c.radius = state.tooltip.radius * window.devicePixelRatio;
@@ -84,7 +93,6 @@ module.exports = state => {
           }
         }
       );
-      console.log(tpcache);
 
       shouldDrawLines = shouldDrawLines || tooltipChanged;
 
@@ -93,8 +101,7 @@ module.exports = state => {
         c =>
           c.ymin !== state.y0.matrix[0] ||
           c.yrange !== state.y0.matrix[1] ||
-          fontSizeChanged ||
-          resizeTriggered,
+          fontSizeChanged,
         c => {
           c.ymin = state.y0.matrix[0];
           c.yrange = state.y0.matrix[1];
@@ -138,7 +145,7 @@ module.exports = state => {
           c =>
             c.lineJoin !== "bevel" ||
             c.lineCap !== "butt" ||
-            c.width !== state.y.width,
+            c.width !== state.y0.width,
           c => {
             context.lineJoin = c.lineJoin = "bevel";
             context.lineCap = c.lineCap = "butt";
@@ -190,6 +197,16 @@ module.exports = state => {
             lcache.height - ccache.lineWidth * 1.5
           );
 
+          canvasCache(
+            c => c.width !== state.y0.width,
+            c => {
+              c.width = state.y0.width;
+
+              context.lineWidth = c.lineWidth =
+                state.y0.width * window.devicePixelRatio;
+            }
+          );
+
           state.ids.forEach(v => {
             const chart = state.charts[v];
 
@@ -201,7 +218,8 @@ module.exports = state => {
             drawPoint(
               context,
               tpcache.indexLeft,
-              lcache.scaleY * chart.values[tpcache.index] + lcache.offsetY,
+              lcache.scaleY * chart.values[lcache.start + tpcache.index] +
+                lcache.offsetY,
               tpcache.radius
             );
           });
@@ -248,12 +266,12 @@ module.exports = state => {
 
       // update text size
       const textWidthChanged = textCache(
-        c => c.formatter !== formatter || fontSizeChanged || resizeTriggered,
+        c => c.formatter !== formatter || fontSizeChanged,
         c => {
           c.formatter = formatter;
 
           const textWidth = Math.ceil(
-            context.measureText(c.formatter(state.x.values[0], true)).width
+            context.measureText(c.formatter(state.x.values[0], "short")).width
           );
 
           c.textBaseOffsetX = Math.floor(textWidth / 2);
@@ -328,7 +346,7 @@ module.exports = state => {
           const indexShift = i - lcache.start;
 
           context.fillText(
-            formatDate(state.x.values[i], true),
+            formatDate(state.x.values[i], "short"),
             indexShift * lcache.scaleX + tcache.textOffsetX,
             bottomCorner
           );
@@ -347,13 +365,12 @@ module.exports = state => {
           const indexShift = i - lcache.start;
 
           context.fillText(
-            formatDate(state.x.values[i], true),
+            formatDate(state.x.values[i], "short"),
             indexShift * lcache.scaleX + tcache.textOffsetX,
             bottomCorner
           );
         }
       }
-    },
-    register: callback => callback({ id: "view", element: canvas })
+    }
   };
 };

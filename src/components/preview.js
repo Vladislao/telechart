@@ -27,12 +27,17 @@ module.exports = state => {
   const tracker = scroll.tracker;
   const mask = scroll.mask;
 
+  let resizedOnce = false;
+
   return {
     element: canvas,
     render: () => {
-      const canvasSizeChanged = resize(canvas);
+      if (!resizedOnce) {
+        resize(canvas);
+        resizedOnce = true;
+      }
 
-      let shouldDraw = canvasSizeChanged;
+      let shouldDraw = false;
 
       const trackerSizeChanged = trackerCache(
         c => c._trackerW !== tracker.width,
@@ -48,7 +53,7 @@ module.exports = state => {
 
       const length = state.x.values.length - 1;
       const xBoundsChanged = linesCache(
-        c => c.range !== length || canvasSizeChanged,
+        c => c.range !== length,
         c => {
           c.start = 0;
           c.range = length;
@@ -60,10 +65,7 @@ module.exports = state => {
       shouldDraw = shouldDraw || xBoundsChanged;
 
       const yBoundsChanged = linesCache(
-        c =>
-          c.ymin !== state.y.matrix[0] ||
-          c.yrange !== state.y.matrix[1] ||
-          canvasSizeChanged,
+        c => c.ymin !== state.y.matrix[0] || c.yrange !== state.y.matrix[1],
         c => {
           c.ymin = state.y.matrix[0];
           c.yrange = state.y.matrix[1];

@@ -17,7 +17,7 @@ const drawVerticalLine = (context, left, height) => {
 
 const drawPoint = (context, x, y, radius) => {
   context.beginPath();
-  context.arc(x, y, radius, 0, 2 * Math.PI);
+  context.arc(x, y, radius + 1, 0, 2 * Math.PI);
   context.stroke();
 
   const previous = context.globalCompositeOperation;

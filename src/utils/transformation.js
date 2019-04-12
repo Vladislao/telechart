@@ -55,13 +55,19 @@ const MONTH = [
 ];
 const DAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const formatDate = (v, short) => {
+const formatDate = (v, mode) => {
   const datetime = new Date(v);
   const date = datetime.getDate();
-  const month = `${MONTH[datetime.getMonth()]} ${date > 9 ? date : `0${date}`}`;
-  if (short) return month;
+  const month = datetime.getMonth();
 
-  return `${DAY[datetime.getDay()]}, ${month}`;
+  if (mode === "short")
+    return `${MONTH[month]} ${date > 9 ? date : `0${date}`}`;
+  if (mode === "date")
+    return `${date} ${MONTH[month]} ${datetime.getFullYear()}`;
+
+  return `${DAY[datetime.getDay()]}, ${date > 9 ? date : `0${date}`} ${
+    MONTH[month]
+  } ${datetime.getFullYear()}`;
 };
 
 const formatValue = v => {
@@ -82,15 +88,10 @@ const bound = (x, lower, upper) => Math.max(Math.min(x, upper), lower);
 const resize = canvas => {
   const realToCSSPixels = window.devicePixelRatio;
 
-  // Lookup the size the browser is displaying the canvas in CSS pixels
-  // and compute a size needed to make our drawingbuffer match it in
-  // device pixels.
   const displayWidth = Math.floor(canvas.clientWidth * realToCSSPixels);
   const displayHeight = Math.floor(canvas.clientHeight * realToCSSPixels);
 
-  // Check if the canvas is not the same size.
   if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
-    // Make the canvas the same size
     canvas.width = displayWidth;
     canvas.height = displayHeight;
     return true;
