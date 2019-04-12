@@ -1,5 +1,6 @@
 const { resize, formatDate } = require("../utils/transformation");
 const createCache = require("../utils/cache");
+const drawLine = require("../rendering/line");
 
 module.exports = state => {
   const canvas = document.createElement("canvas");
@@ -26,27 +27,6 @@ module.exports = state => {
 
       let shouldDrawLines = resizeTriggered;
       let shouldDrawText = resizeTriggered;
-
-      const lineStyleChanged = canvasCache(
-        c =>
-          c.lineJoin !== "bevel" ||
-          c.lineCap !== "butt" ||
-          c.width !== state.y.width,
-        c => {
-          c.lineJoin = "bevel";
-          c.lineCap = "butt";
-          c.width = state.y.width;
-
-          c.lineWidth = state.y.width * window.devicePixelRatio;
-        }
-      );
-
-      if (lineStyleChanged) {
-        context.lineJoin = ccache.lineJoin;
-        context.lineCap = ccache.lineCap;
-        context.lineWidth = ccache.lineWidth;
-        shouldDrawLines = true;
-      }
 
       // update font size
       const fontSizeChanged = textCache(
@@ -94,6 +74,7 @@ module.exports = state => {
           c.ymin = state.y0.matrix[0];
           c.yrange = state.y0.matrix[1];
           c.height = canvas.height - tcache.fontSize - tcache.margin * 2;
+          c.borderBottom = c.height - 1;
 
           c.scaleY = -c.height / c.yrange;
           c.offsetY = c.height - c.ymin * c.scaleY;
@@ -128,6 +109,21 @@ module.exports = state => {
       if (shouldDrawLines) {
         context.clearRect(0, 0, canvas.width, lcache.height);
 
+        canvasCache(
+          c =>
+            c.lineJoin !== "bevel" ||
+            c.lineCap !== "butt" ||
+            c.width !== state.y.width,
+          c => {
+            context.lineJoin = c.lineJoin = "bevel";
+            context.lineCap = c.lineCap = "butt";
+            c.width = state.y0.width;
+
+            context.lineWidth = c.lineWidth =
+              state.y0.width * window.devicePixelRatio;
+          }
+        );
+
         state.ids.forEach(v => {
           const chart = state.charts[v];
 
@@ -136,16 +132,7 @@ module.exports = state => {
           context.globalAlpha = chart.color.alpha;
           context.strokeStyle = chart.color.hex;
 
-          context.beginPath();
-
-          for (let i = 0; i <= lcache.range + 1; i += 1) {
-            context.lineTo(
-              i * lcache.scaleX + lcache.offsetX,
-              chart.values[lcache.start + i] * lcache.scaleY + lcache.offsetY
-            );
-          }
-
-          context.stroke();
+          drawLine(context, chart.values, lcache, lcache.border);
         });
       }
 
@@ -217,7 +204,10 @@ module.exports = state => {
           const textClosest =
             Math.ceil(lcache.start / c.textStep) * c.textStep - c.textStep;
           c.textStart = Math.max(textClosest, c.textStep) - c.textPadding;
-          c.textLast = lcache.start + lcache.range + 1;
+          c.textLast = Math.min(
+            lcache.start + lcache.range + 1,
+            state.x.values.length
+          );
           c.textOffsetX = lcache.offsetX - c.textBaseOffsetX;
         }
       );

@@ -1,4 +1,4 @@
-const track = (context, x, width, height, radius, dir) => {
+const drawTrack = (context, x, width, height, radius, dir) => {
   context.beginPath();
 
   context.moveTo(x - width + radius * dir, 0);
@@ -36,4 +36,22 @@ const track = (context, x, width, height, radius, dir) => {
   context.fill();
 };
 
-module.exports.track = track;
+// const mask = (context, options) => {
+//   context.fillRect(
+//     0,
+//     tcache.padding,
+//     tcache.left,
+//     canvas.height - tcache.padding * 2
+//   );
+//   if (right !== canvas.width) {
+//     context.fillRect(
+//       right,
+//       tcache.padding,
+//       canvas.width - right,
+//       canvas.height - tcache.padding * 2
+//     );
+//   }
+
+// }
+
+module.exports.drawTrack = drawTrack;

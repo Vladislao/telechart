@@ -6,7 +6,7 @@ const createShowAnimation = (state, chart, render) => {
   const windowYMinmax = minmax(
     state,
     state.window.offset,
-    state.x.values.length
+    state.window.offset + state.window.width
   );
 
   return {
@@ -43,7 +43,7 @@ const createHideAnimation = (state, chart, render) => {
   const windowYMinmax = minmax(
     state,
     state.window.offset,
-    state.x.values.length
+    state.window.offset + state.window.width
   );
 
   return {

@@ -53,11 +53,10 @@ const create = data => {
     },
     y: {
       width: 1,
-      // minmax: globalYMinmax,
       matrix: [globalYMinmax[0], globalYMinmax[1] - globalYMinmax[0]]
     },
     y0: {
-      // minmax: windowYMinmax,
+      width: 1,
       matrix: [windowYMinmax[0], windowYMinmax[1] - windowYMinmax[0]]
     },
     window: {
