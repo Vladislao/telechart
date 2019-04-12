@@ -1,8 +1,13 @@
 const { animate, easeOutCubic } = require("../utils/animation");
-const { minmax, bound } = require("../utils/transformation");
+const { minmax, findScale, bound } = require("../utils/transformation");
 
 const createAnimation = (state, nextOffset, nextWidth, ms) => {
   const windowYMinmax = minmax(state, nextOffset, nextOffset + nextWidth);
+  const windowYScale = findScale(
+    windowYMinmax[0],
+    windowYMinmax[1],
+    state.grid.lines
+  );
 
   return animate(
     {
@@ -13,7 +18,7 @@ const createAnimation = (state, nextOffset, nextWidth, ms) => {
     {
       offset: nextOffset,
       width: nextWidth,
-      y0: [windowYMinmax[0], windowYMinmax[1] - windowYMinmax[0]]
+      y0: windowYScale
     },
     step => {
       state.window.offset = step.offset;
@@ -103,6 +108,11 @@ const createScrollAnimation = (state, event, render) => {
 
 const createInspectAnimation = (state, event, render) => {
   const windowYMinmax = minmax(state, event.offset, event.offset + event.width);
+  const windowYScale = findScale(
+    windowYMinmax[0],
+    windowYMinmax[1],
+    state.grid.lines
+  );
 
   return {
     draw: render,
@@ -115,7 +125,7 @@ const createInspectAnimation = (state, event, render) => {
       {
         offset: event.offset,
         width: event.width,
-        y0: [windowYMinmax[0], windowYMinmax[1] - windowYMinmax[0]]
+        y0: windowYScale
       },
       step => {
         state.window.offset = step.offset;

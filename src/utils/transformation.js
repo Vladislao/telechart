@@ -1,75 +1,22 @@
 const segmentTree = require("./segmentTree");
 
-const colorToRgba = (color, opacity) => {
-  if (color.indexOf("rgba") >= 0) {
-    return color
-      .replace("rgba(", "")
-      .split(",")
-      .map(v => parseInt(v, 10) / 255);
-  }
+const PREFERED_STEPS = [1, 1.5, 2, 2.5, 5, 7.5, 10];
 
-  const hex = color.substring(1);
-
-  const num = parseInt(hex, 16);
-  // eslint-disable-next-line no-bitwise
-  const red = num >> 16;
-  // eslint-disable-next-line no-bitwise
-  const green = (num >> 8) & 255;
-  // eslint-disable-next-line no-bitwise
-  const blue = num & 255;
-
-  if (!opacity && opacity !== 0) opacity = 1;
-
-  return [red / 255, green / 255, blue / 255, opacity];
-};
-
-const findMin = (arr, start, end) => {
-  if (!arr.length) return arr;
-
-  if (arr[0].length)
-    return Math.min.apply(null, arr.map(v => findMin(v, start, end)));
-  return Math.min.apply(null, arr.slice(start || 0, end || arr.length));
-};
-
-const findMax = (arr, start, end) => {
-  if (!arr.length) return arr;
-
-  if (arr[0].length)
-    return Math.max.apply(null, arr.map(v => findMax(v, start, end)));
-  return Math.max.apply(null, arr.slice(start || 0, end || arr.length));
-};
-
-const preferedYSteps = [1, 1.5, 2, 2.5, 5, 7.5, 10];
-const preferedXSteps = [1, 2, 3, 5, 7, 10, 11, 14, 15, 30];
-
-const findScale = (min, max, count, preference) => {
+const findScale = (min, max, count) => {
+  console.log(min, max, count);
   const range = max - min;
 
   const roughStep = range / (count - 1);
   const stepPower = Math.pow(10, -Math.floor(Math.log10(Math.abs(roughStep))));
   const normalizedStep = roughStep * stepPower;
 
-  const preferedStep = preference.find(v => v >= normalizedStep);
-  const step = +(preferedStep / stepPower).toPrecision(5);
+  const preferedStep = PREFERED_STEPS.find(v => v >= normalizedStep);
+  const step = Math.round(preferedStep / stepPower);
 
-  return {
-    min: Math.floor(min / step) * step,
-    max: Math.ceil(max / step) * step,
-    step,
-    count
-  };
-};
+  const bot = Math.floor(min / step) * step;
+  const top = Math.ceil(max / step) * step;
 
-const expandSteps = (min, max, step, count) => {
-  const result = [];
-  for (let i = 0; i < count; i++) {
-    const value = min + step * i;
-    result.push({
-      value,
-      point: translate(value, max, min, 0, 1)
-    });
-  }
-  return result;
+  return [bot, top - bot, top, step];
 };
 
 const minmax = (state, from, to) => {
@@ -118,28 +65,18 @@ const formatDate = (v, short) => {
   return `${DAY[datetime.getDay()]}, ${month}`;
 };
 
-const formatValue = v => {};
+const formatValue = v => {
+  const abs = Math.abs(v);
+
+  if (abs > 999999999) return (v / 1000000000).toFixed(2).trim + "B";
+  if (abs > 999999) return (v / 1000000).toFixed(2) + "M";
+  if (abs > 999) return (v / 1000).toFixed(1) + "K";
+
+  return v.toFixed(0);
+};
 
 const closest = (target, offset) =>
   Math.max(Math.min(Math.round((target - 1) * offset), target - 1), 0);
-
-const translate = (v, max, min, offset, width) =>
-  ((v - min) / (max - min) - offset) / width;
-
-const expandRectangle = (a, b, c, d) => [a, b, c, c, d, a];
-
-const expandCircle = count => {
-  const x = [0];
-  const y = [0];
-
-  for (let i = 0; i <= count; i++) {
-    x.push(Math.cos((i * 2 * Math.PI) / count));
-    y.push(Math.sin((i * 2 * Math.PI) / count));
-  }
-  return { x, y };
-};
-
-const ratio = (a, b, width, height) => [a / width, b / height];
 
 const bound = (x, lower, upper) => Math.max(Math.min(x, upper), lower);
 
@@ -164,16 +101,9 @@ const resize = canvas => {
 };
 
 module.exports.formatDate = formatDate;
-module.exports.colorToRgba = colorToRgba;
+module.exports.formatValue = formatValue;
 module.exports.minmax = minmax;
-module.exports.translate = translate;
-module.exports.expandRectangle = expandRectangle;
-module.exports.expandCircle = expandCircle;
 module.exports.closest = closest;
-module.exports.ratio = ratio;
 module.exports.bound = bound;
 module.exports.resize = resize;
 module.exports.findScale = findScale;
-module.exports.expandSteps = expandSteps;
-module.exports.preferedXSteps = preferedXSteps;
-module.exports.preferedYSteps = preferedYSteps;

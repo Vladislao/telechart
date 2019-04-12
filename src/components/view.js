@@ -1,6 +1,7 @@
-const { resize, formatDate } = require("../utils/transformation");
+const { resize, formatDate, formatValue } = require("../utils/transformation");
 const createCache = require("../utils/cache");
 const drawLine = require("../rendering/line");
+const { drawHorizontalLines } = require("../rendering/grid");
 
 module.exports = state => {
   const canvas = document.createElement("canvas");
@@ -54,9 +55,8 @@ module.exports = state => {
 
           c.start = Math.trunc(c.offset);
           c.range = Math.trunc(c.width);
-          c.end = Math.min(c.start + c.range + 1, c.length);
 
-          c.scaleX = canvas.width / (c.range + c.width - c.range);
+          c.scaleX = canvas.width / (c.range - 1 + c.width - c.range);
           c.offsetX = -c.scaleX * (c.offset - c.start);
         }
       );
@@ -129,30 +129,73 @@ module.exports = state => {
 
           if (chart.color.alpha === 0) return;
 
-          context.globalAlpha = chart.color.alpha;
-          context.strokeStyle = chart.color.hex;
+          ccache.globalAlpha = context.globalAlpha = chart.color.alpha;
+          ccache.strokeStyle = context.strokeStyle = chart.color.hex;
 
           drawLine(context, chart.values, lcache, lcache.border);
         });
+
+        canvasCache(
+          c =>
+            c.width !== state.grid.linewidth ||
+            c.globalAlpha !== state.grid.color.alpha ||
+            c.strokeStyle !== state.grid.color.hex,
+          c => {
+            c.width = state.axis.linewidth;
+
+            context.lineWidth = c.lineWidth =
+              state.grid.linewidth * window.devicePixelRatio;
+            context.globalAlpha = c.globalAlpha = state.grid.color.alpha;
+            context.strokeStyle = c.strokeStyle = state.grid.color.hex;
+          }
+        );
+
+        drawHorizontalLines(
+          context,
+          state.y0.matrix,
+          lcache,
+          canvas.width,
+          ccache.lineWidth
+        );
+
+        canvasCache(
+          c =>
+            c.baseFont !== state.axis.font ||
+            c.fillStyle !== state.axis.color.hex ||
+            c.globalAlpha !== state.axis.color.alpha ||
+            fontSizeChanged,
+          c => {
+            c.baseFont = state.axis.font;
+            context.font = c.font = `${tcache.fontSize}px ${state.axis.font}`;
+            context.fillStyle = c.fillStyle = state.axis.color.hex;
+            context.globalAlpha = c.globalAlpha = state.axis.color.alpha;
+          }
+        );
+
+        const matrix = state.y0.matrix;
+        for (let i = matrix[0]; i <= matrix[2]; i += matrix[3]) {
+          context.fillText(
+            formatValue(i),
+            0,
+            i * lcache.scaleY +
+              lcache.offsetY -
+              ccache.lineWidth -
+              2 * window.devicePixelRatio
+          );
+        }
       }
 
-      const fontStyleChanged = canvasCache(
+      canvasCache(
         c =>
           c.baseFont !== state.axis.font ||
           c.fillStyle !== state.axis.color.hex ||
           fontSizeChanged,
         c => {
           c.baseFont = state.axis.font;
-          c.font = `${tcache.fontSize}px ${state.axis.font}`;
-          c.fillStyle = state.axis.color.hex;
+          context.font = c.font = `${tcache.fontSize}px ${state.axis.font}`;
+          context.fillStyle = c.fillStyle = state.axis.color.hex;
         }
       );
-
-      if (fontStyleChanged) {
-        context.font = ccache.font;
-        context.fillStyle = ccache.fillStyle;
-        shouldDrawText = true;
-      }
 
       // update text size
       const textWidthChanged = textCache(

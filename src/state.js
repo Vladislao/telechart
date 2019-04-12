@@ -1,4 +1,4 @@
-const { closest, minmax } = require("./utils/transformation");
+const { closest, minmax, findScale } = require("./utils/transformation");
 const segmentTree = require("./utils/segmentTree");
 
 const getValues = (columns, id) => columns.find(v => v[0] === id).slice(1);
@@ -38,6 +38,7 @@ const create = data => {
     windowOffset,
     windowOffset + windowWidth
   );
+  const windowYScale = findScale(windowYMinmax[0], windowYMinmax[1], 6);
 
   // TODO: matrix to transform
 
@@ -57,7 +58,7 @@ const create = data => {
     },
     y0: {
       width: 1,
-      matrix: [windowYMinmax[0], windowYMinmax[1] - windowYMinmax[0]]
+      matrix: windowYScale
     },
     window: {
       offset: windowOffset,
@@ -84,54 +85,23 @@ const create = data => {
     tooltip: {
       offset: null
     },
+    grid: {
+      lines: 6,
+      linewidth: 1,
+      color: {
+        hex: "#182D3B",
+        alpha: 0.1
+      }
+    },
     axis: {
       font: "Arial",
       size: 10,
-      steps: null,
       color: {
         hex: "#8E8E93",
         alpha: 1
-      },
-      width: 1
+      }
     }
   };
 };
-
-// const createCurrentState = initialState => {
-//   const y0 = initialState.columns[initialState.ids[0]];
-//   return Object.assign({}, initialState, {
-//     initial: initialState,
-//     toggles: initialState.ids.reduce((acc, v) => {
-//       acc[v] = true;
-//       return acc;
-//     }, {}),
-//     colorsRGBA: initialState.ids.reduce((acc, v) => {
-//       acc[v] = initialState.colorsRGBA[v].slice(0);
-//       return acc;
-//     }, {}),
-//     minmax: {
-//       x: minmax(initialState.columns.x),
-//       y: minmax(initialState.ids.map(v => initialState.columns[v])),
-//       y0: minmax(
-//         initialState.ids.map(v => initialState.columns[v]),
-//         closest(y0, 0.7),
-//         closest(y0, 1) + 1
-//       )
-//     },
-//     window: {
-//       offset: 0.7,
-//       width: 0.3,
-//       index: closest(y0, 0.7),
-//       colorsRGBA: {
-//         background: colorToRgba("#000", 0.35),
-//         control: colorToRgba("#000", 0.5)
-//       }
-//     },
-//     tooltip: {
-//       offsetX: null,
-//       columns: {}
-//     }
-//   });
-// };
 
 module.exports = create;

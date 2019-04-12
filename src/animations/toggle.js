@@ -1,5 +1,5 @@
 const { animate, easeInOutQuad } = require("../utils/animation");
-const { minmax, closest } = require("../utils/transformation");
+const { minmax, findScale } = require("../utils/transformation");
 
 const createShowAnimation = (state, chart, render) => {
   const globalYMinmax = minmax(state, 0, state.x.values.length);
@@ -7,6 +7,11 @@ const createShowAnimation = (state, chart, render) => {
     state,
     state.window.offset,
     state.window.offset + state.window.width
+  );
+  const windowYScale = findScale(
+    windowYMinmax[0],
+    windowYMinmax[1],
+    state.grid.lines
   );
 
   return {
@@ -20,7 +25,7 @@ const createShowAnimation = (state, chart, render) => {
       {
         alpha: 1,
         y: [globalYMinmax[0], globalYMinmax[1] - globalYMinmax[0]],
-        y0: [windowYMinmax[0], windowYMinmax[1] - windowYMinmax[0]]
+        y0: windowYScale
       },
       step => {
         // step.y0.steps.forEach((v, i) => {
@@ -45,6 +50,11 @@ const createHideAnimation = (state, chart, render) => {
     state.window.offset,
     state.window.offset + state.window.width
   );
+  const windowYScale = findScale(
+    windowYMinmax[0],
+    windowYMinmax[1],
+    state.grid.lines
+  );
 
   return {
     draw: render,
@@ -57,7 +67,7 @@ const createHideAnimation = (state, chart, render) => {
       {
         alpha: 0,
         y: [globalYMinmax[0], globalYMinmax[1] - globalYMinmax[0]],
-        y0: [windowYMinmax[0], windowYMinmax[1] - windowYMinmax[0]]
+        y0: windowYScale
       },
       step => {
         chart.color.alpha = step.alpha;
