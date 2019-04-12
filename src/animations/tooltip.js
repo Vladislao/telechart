@@ -1,36 +1,79 @@
-const { closest, translate } = require("../utils/transformation");
+const { animate } = require("../utils/animation");
 
-const createTooltipAnimation = (state, render) => () => {
-  const { offsetX, targetWidth } = state.tooltip;
+const createTooltipAnimation = (state, event, render) => {
+  let previousX = state.tooltip.index;
+  let animation = null;
 
-  const localOffset = (offsetX / targetWidth) * window.devicePixelRatio;
-  const offset = state.window.offset + state.window.width * localOffset;
+  return {
+    draw: render,
+    update: ms => {
+      if (event.done) {
+        state.tooltip.x = null;
+        state.tooltip.index = null;
+        return false;
+      }
 
-  const index = closest(state.columns.x, offset);
+      if (animation) {
+        const running = animation(ms);
+        if (!running) {
+          animation = null;
+        }
+      }
 
-  if (state.tooltip.index !== index) {
-    state.tooltip.index = index;
-    state.tooltip.x = translate(
-      state.columns.x[index],
-      state.minmax.x.max,
-      state.minmax.x.min,
-      state.window.offset,
-      state.window.width
-    );
+      const x = Math.floor(event.offsetX * event.step);
 
-    state.tooltip.columns = state.ids.reduce((acc, c) => {
-      acc[c] = translate(
-        state.columns[c][index],
-        state.minmax.y0.scale.max,
-        state.minmax.y0.scale.min,
-        0,
-        1
-      );
-      return acc;
-    }, state.tooltip.columns);
-  }
+      if (x !== previousX) {
+        if (state.tooltip.x) {
+          animation = animate(
+            state.tooltip.x,
+            x,
+            step => {
+              state.tooltip.x = step;
+              state.tooltip.index = x;
+            },
+            { start: ms, duration: 150 }
+          );
+        } else {
+          state.tooltip.x = x;
+          state.tooltip.index = x;
+        }
+        previousX = x;
+      }
 
-  return render();
+      return true;
+    }
+  };
 };
+
+// const { offsetX, targetWidth } = state.tooltip;
+
+// const localOffset = (offsetX / targetWidth) * window.devicePixelRatio;
+// const offset = state.window.offset + state.window.width * localOffset;
+
+// const index = closest(state.columns.x, offset);
+
+// if (state.tooltip.index !== index) {
+//   state.tooltip.index = index;
+//   state.tooltip.x = translate(
+//     state.columns.x[index],
+//     state.minmax.x.max,
+//     state.minmax.x.min,
+//     state.window.offset,
+//     state.window.width
+//   );
+
+//   state.tooltip.columns = state.ids.reduce((acc, c) => {
+//     acc[c] = translate(
+//       state.columns[c][index],
+//       state.minmax.y0.scale.max,
+//       state.minmax.y0.scale.min,
+//       0,
+//       1
+//     );
+//     return acc;
+//   }, state.tooltip.columns);
+// }
+
+// return render();
 
 module.exports.createTooltipAnimation = createTooltipAnimation;

@@ -8,4 +8,27 @@ const drawHorizontalLines = (context, matrix, position, width, yshift) => {
   context.stroke();
 };
 
+const drawVerticalLine = (context, left, height) => {
+  context.beginPath();
+  context.moveTo(left, 0);
+  context.lineTo(left, height);
+  context.stroke();
+};
+
+const drawPoint = (context, x, y, radius) => {
+  context.beginPath();
+  context.arc(x, y, radius, 0, 2 * Math.PI);
+  context.stroke();
+
+  const previous = context.globalCompositeOperation;
+  context.globalCompositeOperation = "destination-out";
+
+  context.beginPath();
+  context.arc(x, y, radius - 1, 0, 2 * Math.PI);
+  context.fill();
+  context.globalCompositeOperation = previous;
+};
+
 module.exports.drawHorizontalLines = drawHorizontalLines;
+module.exports.drawVerticalLine = drawVerticalLine;
+module.exports.drawPoint = drawPoint;

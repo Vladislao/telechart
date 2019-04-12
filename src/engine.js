@@ -21,11 +21,11 @@ const createEventListeners = () => {
   const passiveSupported = isPassiveSupported();
 
   engine.passiveSupported = passiveSupported;
-  const options = passiveSupported ? { passive: true, capture: false } : false;
+  engine.passive = passiveSupported ? { passive: true, capture: false } : false;
 
-  window.addEventListener("mousedown", engine.handleEvent, options);
-  window.addEventListener("mouseup", engine.handleEvent, options);
-  window.addEventListener("mousemove", engine.handleEvent, options);
+  window.addEventListener("mousedown", engine.handleEvent, engine.passive);
+  window.addEventListener("mouseup", engine.handleEvent, engine.passive);
+  window.addEventListener("mousemove", engine.handleEvent, engine.passive);
 };
 
 module.exports = () => {

@@ -1,7 +1,11 @@
 const { resize, formatDate, formatValue } = require("../utils/transformation");
 const createCache = require("../utils/cache");
 const drawLine = require("../rendering/line");
-const { drawHorizontalLines } = require("../rendering/grid");
+const {
+  drawHorizontalLines,
+  drawVerticalLine,
+  drawPoint
+} = require("../rendering/grid");
 
 module.exports = state => {
   const canvas = document.createElement("canvas");
@@ -11,6 +15,9 @@ module.exports = state => {
 
   const tcache = {};
   const textCache = createCache(tcache);
+
+  const tpcache = {};
+  const tooltipCache = createCache(tpcache);
 
   const ccache = {};
   const canvasCache = createCache(ccache);
@@ -62,6 +69,24 @@ module.exports = state => {
       );
       shouldDrawLines = shouldDrawLines || xBoundsChanged;
       shouldDrawText = shouldDrawText || xBoundsChanged;
+
+      // update tooltip position
+      const tooltipChanged = tooltipCache(
+        c => c.x !== state.tooltip.x || xBoundsChanged || resizeTriggered,
+        c => {
+          c.x = state.tooltip.x;
+          c.radius = state.tooltip.radius * window.devicePixelRatio;
+          c.index = state.tooltip.index;
+
+          if (c.x !== null) {
+            c.indexLeft = c.index * lcache.scaleX + lcache.offsetX;
+            c.left = c.x * lcache.scaleX + lcache.offsetX;
+          }
+        }
+      );
+      console.log(tpcache);
+
+      shouldDrawLines = shouldDrawLines || tooltipChanged;
 
       // update y bounds
       const yBoundsChanged = linesCache(
@@ -157,6 +182,30 @@ module.exports = state => {
           canvas.width,
           ccache.lineWidth
         );
+
+        if (tpcache.x !== null) {
+          drawVerticalLine(
+            context,
+            tpcache.left,
+            lcache.height - ccache.lineWidth * 1.5
+          );
+
+          state.ids.forEach(v => {
+            const chart = state.charts[v];
+
+            if (chart.color.alpha === 0) return;
+
+            ccache.globalAlpha = context.globalAlpha = chart.color.alpha;
+            ccache.strokeStyle = context.strokeStyle = chart.color.hex;
+
+            drawPoint(
+              context,
+              tpcache.indexLeft,
+              lcache.scaleY * chart.values[tpcache.index] + lcache.offsetY,
+              tpcache.radius
+            );
+          });
+        }
 
         canvasCache(
           c =>

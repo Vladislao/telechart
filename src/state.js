@@ -49,9 +49,6 @@ const create = data => {
       values: x,
       matrix: [0, x.length - 1]
     },
-    x0: {
-      matrix: [windowOffset, windowWidth]
-    },
     y: {
       width: 1,
       matrix: [globalYMinmax[0], globalYMinmax[1] - globalYMinmax[0]]
@@ -83,7 +80,10 @@ const create = data => {
       }
     },
     tooltip: {
-      offset: null
+      radius: 3,
+      index: null,
+      x: null,
+      y: null
     },
     grid: {
       lines: 6,

@@ -7,13 +7,12 @@ const createView = require("./components/view");
 const createPreview = require("./components/preview");
 const createControls = require("./components/controls");
 const createTooltip = require("./components/tooltip");
-const createGrid = require("./components/grid");
 
 const createControlHandlers = require("./handlers/controls");
 const createTooltipHandler = require("./handlers/tooltip");
 const createPreviewHandler = require("./handlers/preview");
 
-const createDOM = (uElement, chart, controls, preview, tooltip, grid) => {
+const createDOM = (uElement, chart, controls, preview, tooltip) => {
   const element = uElement;
   element.className = "tc-wrapper";
 
@@ -21,7 +20,6 @@ const createDOM = (uElement, chart, controls, preview, tooltip, grid) => {
   wrapper.className = "tc-chart-wrapper";
 
   if (chart) wrapper.appendChild(chart);
-  if (grid) wrapper.appendChild(grid);
 
   element.appendChild(wrapper);
 
@@ -51,7 +49,6 @@ module.exports = (element, data, options) => {
    *  register - function that receives single callback, can be used to add event handlers
    */
   const view = createView(state);
-  const grid = createGrid(state);
   const preview = createPreview(state);
   const controls = createControls(state);
   const tooltip = createTooltip(state);
@@ -62,25 +59,18 @@ module.exports = (element, data, options) => {
   );
 
   // // Handle mouseover and click events for zooming and tooltip
-  // grid.register(
-  //   createTooltipHandler(state, engine, () => {
-  //     view.render();
-  //     tooltip.render();
-  //   })
-  // );
+  view.register(
+    createTooltipHandler(state, engine, [view.render, tooltip.render])
+  );
 
   // Handle mouse and touch events for preview interactions
   preview.register(
-    createPreviewHandler(state, engine, [
-      view.render,
-      grid.render,
-      preview.render
-    ])
+    createPreviewHandler(state, engine, [view.render, preview.render])
   );
 
   // Render all components for the first time
   engine.registerAnimation({
-    draw: [view.render, grid.render, preview.render]
+    draw: [view.render, preview.render]
   });
 
   // Add elements to the DOM tree
@@ -89,8 +79,7 @@ module.exports = (element, data, options) => {
     view.element,
     controls.element,
     preview.element,
-    tooltip.element,
-    grid.element
+    tooltip.element
   );
 
   // TODO: Destroy, update options, update data
