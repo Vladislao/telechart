@@ -3,7 +3,6 @@ const segmentTree = require("./segmentTree");
 const PREFERED_STEPS = [1, 1.5, 2, 2.5, 5, 7.5, 10];
 
 const findScale = (min, max, count) => {
-  console.log(min, max, count);
   const range = max - min;
 
   const roughStep = range / (count - 1);
