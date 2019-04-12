@@ -52,6 +52,7 @@ const create = data => {
       matrix: [windowOffset, windowWidth]
     },
     y: {
+      width: 1,
       // minmax: globalYMinmax,
       matrix: [globalYMinmax[0], globalYMinmax[1] - globalYMinmax[0]]
     },
@@ -91,7 +92,8 @@ const create = data => {
       color: {
         hex: "#8E8E93",
         alpha: 1
-      }
+      },
+      width: 1
     }
   };
 };

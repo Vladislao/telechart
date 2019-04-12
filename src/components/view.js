@@ -7,14 +7,61 @@ module.exports = state => {
 
   const context = canvas.getContext("2d");
 
-  const lcache = createCache();
+  const tcache = {};
+  const textCache = createCache(tcache);
+
+  const ccache = {};
+  const canvasCache = createCache(ccache);
+
+  const lcache = {};
+  const linesCache = createCache(lcache);
 
   return {
     element: canvas,
     render: () => {
+      // TODO: options
+      const formatter = formatDate;
+
       const resizeTriggered = resize(canvas);
 
-      const lc = lcache(
+      let shouldDrawLines = resizeTriggered;
+      let shouldDrawText = resizeTriggered;
+
+      const lineStyleChanged = canvasCache(
+        c =>
+          c.lineJoin !== "bevel" ||
+          c.lineCap !== "butt" ||
+          c.width !== state.y.width,
+        c => {
+          c.lineJoin = "bevel";
+          c.lineCap = "butt";
+          c.width = state.y.width;
+
+          c.lineWidth = state.y.width * window.devicePixelRatio;
+        }
+      );
+
+      if (lineStyleChanged) {
+        context.lineJoin = ccache.lineJoin;
+        context.lineCap = ccache.lineCap;
+        context.lineWidth = ccache.lineWidth;
+        shouldDrawLines = true;
+      }
+
+      // update font size
+      const fontSizeChanged = textCache(
+        c => c.axisSize !== state.axis.size,
+        c => {
+          c.axisSize = state.axis.size;
+
+          c.fontSize = (state.axis.size || 10) * window.devicePixelRatio;
+          c.margin = 2 * window.devicePixelRatio;
+        }
+      );
+      shouldDrawText = shouldDrawText || fontSizeChanged;
+
+      // update x bounds
+      const xBoundsChanged = linesCache(
         c =>
           c.offset !== state.window.offset ||
           c.width !== state.window.width ||
@@ -25,137 +72,204 @@ module.exports = state => {
           c.offset = state.window.offset;
           c.width = state.window.width;
 
-          // c.range = Math.floor(state.window.width) - 1;
-          // c.offsetDelta = state.window.offset - c.offset;
-          // c.widthDelta = state.window.width - c.width;
+          c.start = Math.trunc(c.offset);
+          c.range = Math.trunc(c.width);
+          c.end = Math.min(c.start + c.range + 1, c.length);
 
-          // const end = c.offset + c.width;
+          c.scaleX = canvas.width / (c.range + c.width - c.range);
+          c.offsetX = -c.scaleX * (c.offset - c.start);
+        }
+      );
+      shouldDrawLines = shouldDrawLines || xBoundsChanged;
+      shouldDrawText = shouldDrawText || xBoundsChanged;
+
+      // update y bounds
+      const yBoundsChanged = linesCache(
+        c =>
+          c.ymin !== state.y0.matrix[0] ||
+          c.yrange !== state.y0.matrix[1] ||
+          fontSizeChanged ||
+          resizeTriggered,
+        c => {
+          c.ymin = state.y0.matrix[0];
+          c.yrange = state.y0.matrix[1];
+          c.height = canvas.height - tcache.fontSize - tcache.margin * 2;
+
+          c.scaleY = -c.height / c.yrange;
+          c.offsetY = c.height - c.ymin * c.scaleY;
+        }
+      );
+      shouldDrawLines = shouldDrawLines || yBoundsChanged;
+
+      // update color and alpha
+      const colorsChanged = linesCache(
+        c =>
+          state.ids.some(v => {
+            if (!(v in c)) return true;
+
+            const ci = c[v];
+            const color = state.charts[v].color;
+
+            return color.alpha !== ci.alpha || color.hex !== ci.hex;
+          }),
+        c =>
+          state.ids.forEach(v => {
+            if (!(v in c)) c[v] = {};
+
+            const ci = c[v];
+            const color = state.charts[v].color;
+
+            ci.alpha = color.alpha;
+            ci.hex = color.hex;
+          })
+      );
+      shouldDrawLines = shouldDrawLines || colorsChanged;
+
+      if (shouldDrawLines) {
+        context.clearRect(0, 0, canvas.width, lcache.height);
+
+        state.ids.forEach(v => {
+          const chart = state.charts[v];
+
+          if (chart.color.alpha === 0) return;
+
+          context.globalAlpha = chart.color.alpha;
+          context.strokeStyle = chart.color.hex;
+
+          context.beginPath();
+
+          for (let i = 0; i <= lcache.range + 1; i += 1) {
+            context.lineTo(
+              i * lcache.scaleX + lcache.offsetX,
+              chart.values[lcache.start + i] * lcache.scaleY + lcache.offsetY
+            );
+          }
+
+          context.stroke();
+        });
+      }
+
+      const fontStyleChanged = canvasCache(
+        c =>
+          c.baseFont !== state.axis.font ||
+          c.fillStyle !== state.axis.color.hex ||
+          fontSizeChanged,
+        c => {
+          c.baseFont = state.axis.font;
+          c.font = `${tcache.fontSize}px ${state.axis.font}`;
+          c.fillStyle = state.axis.color.hex;
         }
       );
 
-      const offset = Math.floor(lc.offset);
-      const width = Math.floor(lc.width);
+      if (fontStyleChanged) {
+        context.font = ccache.font;
+        context.fillStyle = ccache.fillStyle;
+        shouldDrawText = true;
+      }
 
-      const textMargin = 2 * window.devicePixelRatio;
-      const textSize = (state.axis.size || 10) * window.devicePixelRatio;
-      const padding = textSize + textMargin * 2;
+      // update text size
+      const textWidthChanged = textCache(
+        c => c.formatter !== formatter || fontSizeChanged || resizeTriggered,
+        c => {
+          c.formatter = formatter;
 
-      const height = canvas.height - padding;
+          const textWidth = Math.ceil(
+            context.measureText(c.formatter(state.x.values[0], true)).width
+          );
 
-      const end = offset + width;
-      const range = end - offset - 1;
-      const last = range + 2;
+          c.textBaseOffsetX = Math.floor(textWidth / 2);
+          c.textSteps = Math.max(canvas.width / (textWidth * 2), 1);
+          c.textMinStep = (state.window.minwidth - 1) / c.textSteps;
+          c.textPadding = Math.floor(c.textMinStep / 2);
+        }
+      );
+      shouldDrawText = shouldDrawText || textWidthChanged;
 
-      const scaleX = canvas.width / (range + state.window.width - width);
-      const offsetX = -scaleX * (state.window.offset - offset);
+      // update position
+      const textPositionChanged = textCache(
+        () => textWidthChanged || xBoundsChanged,
+        c => {
+          const textLocalStep = lcache.range / c.textSteps;
 
-      const scaleY = -height / state.y0.matrix[1];
-      const offsetY = height - state.y0.matrix[0] * scaleY;
+          const textMagnitude = textLocalStep / c.textMinStep;
+          const textMagnitudeInteger = Math.floor(textMagnitude);
+          const primary = textMagnitudeInteger % 2;
 
-      // draw lines
-      context.clearRect(0, 0, canvas.width, canvas.height);
+          c.textFraction = textMagnitude - textMagnitudeInteger;
 
-      context.lineJoin = "bevel";
-      context.lineCap = "butt";
-      context.lineWidth = 1 * window.devicePixelRatio;
+          // update step
+          textCache(
+            cc =>
+              cc.textMagnitudeInteger !== textMagnitudeInteger ||
+              cc.primary !== primary,
+            cc => {
+              cc.textMagnitudeInteger = textMagnitudeInteger;
+              cc.primary = primary;
 
-      state.ids.forEach(v => {
-        const chart = state.charts[v];
+              cc.textStep =
+                Math.max(textMagnitudeInteger - primary, 1) *
+                Math.ceil(cc.textMinStep);
 
-        if (chart.color.alpha === 0) return;
+              cc.textDoubleStep = Math.ceil(cc.textStep * 2);
+            }
+          );
 
-        context.globalAlpha = chart.color.alpha;
-        context.strokeStyle = chart.color.hex;
+          const textClosest =
+            Math.ceil(lcache.start / c.textStep) * c.textStep - c.textStep;
+          c.textStart = Math.max(textClosest, c.textStep) - c.textPadding;
+          c.textLast = lcache.start + lcache.range + 1;
+          c.textOffsetX = lcache.offsetX - c.textBaseOffsetX;
+        }
+      );
+      shouldDrawText = shouldDrawText || textPositionChanged;
 
-        context.beginPath();
+      if (shouldDrawText) {
+        const textBaseAlpha = state.axis.color.alpha;
+        const bottomCorner = canvas.height - tcache.margin;
 
-        for (let i = 0; i < last; i += 1) {
-          context.lineTo(
-            i * scaleX + offsetX,
-            chart.values[offset + i] * scaleY + offsetY
+        context.clearRect(
+          0,
+          lcache.height,
+          canvas.width,
+          canvas.height - lcache.height
+        );
+
+        context.globalAlpha = textBaseAlpha;
+
+        for (
+          let i = -tcache.textPadding;
+          i <= tcache.textLast;
+          i += tcache.textDoubleStep
+        ) {
+          if (i < tcache.textStart) continue;
+
+          const indexShift = i - lcache.start;
+
+          context.fillText(
+            formatDate(state.x.values[i], true),
+            indexShift * lcache.scaleX + tcache.textOffsetX,
+            bottomCorner
           );
         }
 
-        context.stroke();
-      });
+        context.globalAlpha = tcache.primary
+          ? textBaseAlpha - tcache.textFraction
+          : textBaseAlpha;
 
-      // draw bottom text
+        for (
+          let i = tcache.textStep - tcache.textPadding;
+          i <= tcache.textLast;
+          i += tcache.textDoubleStep
+        ) {
+          if (i < tcache.textStart) continue;
+          const indexShift = i - lcache.start;
 
-      context.font = `${state.axis.size * devicePixelRatio}px ${
-        state.axis.font
-      }`;
-      context.fillStyle = state.axis.color.hex;
-
-      // ширина текста в пикселях
-      const textWidth = Math.ceil(
-        context.measureText(formatDate(state.x.values[0], true)).width
-      );
-
-      const textSteps =
-        state.axis.steps || Math.max(canvas.width / (textWidth * 2), 1);
-
-      // минимально возможный шаг
-      const textMinStep = (state.window.minwidth - 1) / textSteps;
-      // текущий шаг
-      const textLocalStep = range / textSteps;
-
-      // отношение к минимальному шагу
-      const textMagnitude = textLocalStep / textMinStep;
-      // целая часть множителя
-      const textMagnitudeInteger = Math.floor(textMagnitude);
-      // дробная часть множителя
-      const textFraction = textMagnitude - textMagnitudeInteger;
-      // четность множителя
-      const primary = textMagnitudeInteger % 2;
-
-      // оптимальный текущий шаг
-      const textStep =
-        Math.max(textMagnitudeInteger - primary, 1) * Math.ceil(textMinStep);
-
-      const textPadding = Math.floor(textMinStep / 2);
-      const textDoubleStep = Math.ceil(textStep * 2);
-
-      // ближайший справа к первому на графике индекс кратный шагу
-      const textClosest = Math.ceil(offset / textStep) * textStep;
-      // индекс первого элемента с датой
-      const textStart = Math.max(textClosest, textStep) - textPadding;
-
-      // конечный элемент
-      const textLast = offset + last;
-
-      // сдвиг
-      const textOffsetX = offsetX - Math.floor(textWidth / 2);
-
-      const textBaseAlpha = state.axis.color.alpha;
-      const bottomCorner = canvas.height - textMargin;
-
-      context.globalAlpha = textBaseAlpha;
-
-      for (let i = -textPadding; i <= textLast; i += textDoubleStep) {
-        if (i < textStart) continue;
-
-        const indexShift = i - offset;
-
-        context.fillText(
-          formatDate(state.x.values[i], true),
-          indexShift * scaleX + textOffsetX,
-          bottomCorner
-        );
-      }
-
-      context.globalAlpha = primary
-        ? textBaseAlpha - textFraction
-        : textBaseAlpha;
-
-      for (let i = textStep - textPadding; i <= textLast; i += textDoubleStep) {
-        if (i < textStart) continue;
-        const indexShift = i - offset;
-
-        context.fillText(
-          formatDate(state.x.values[i], true),
-          indexShift * scaleX + textOffsetX,
-          bottomCorner
-        );
+          context.fillText(
+            formatDate(state.x.values[i], true),
+            indexShift * lcache.scaleX + tcache.textOffsetX,
+            bottomCorner
+          );
+        }
       }
     },
     register: callback => callback({ id: "view", element: canvas })

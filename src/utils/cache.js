@@ -1,15 +1,12 @@
 module.exports = initialCache => {
   const cache = initialCache || {};
-  cache.__hit = false;
 
   return (invalidate, update) => {
-    if (invalidate(cache)) {
-      cache.__hit = false;
+    if (!invalidate || invalidate(cache)) {
       update(cache);
-      return cache;
+      return true;
     }
 
-    cache.__hit = true;
-    return cache;
+    return false;
   };
 };
