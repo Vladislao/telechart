@@ -5,7 +5,7 @@ const {
 } = require("../animations/drag");
 
 const determineAction = (state, offsetX, width) => {
-  const scaleX = width / state.x.matrix[1];
+  const scaleX = width / (state.x.values.length - 1);
   const trackerWidth = state.window.tracker.width * window.devicePixelRatio;
 
   const leftTrackX = state.window.offset * scaleX;
@@ -36,7 +36,7 @@ module.exports = (state, engine, render) => v => {
 
     const inspectEvent = {
       offset: bound(
-        offsetX / scaleX - state.window.minwidth / 2,
+        Math.round(offsetX / scaleX - state.window.minwidth / 2),
         0,
         state.x.values.length - state.window.minwidth
       ),

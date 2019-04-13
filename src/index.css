@@ -138,19 +138,8 @@
   transform: rotate(45deg);
 }
 
-/* .tc-control.tc-checked > .tc-checkbox:after {
-  position: absolute;
-  left: 12px;
-  top: 9px;
-
-  content: "";
-  display: block;
-
-  width: 4px;
-  height: 9px;
-
-  border: solid #fff;
-  border-width: 0 3px 3px 0;
-
-  transform: rotate(45deg);
-} */
+.tc-range {
+  display: flex;
+  font-size: 12px;
+  font-weight: bold;
+}

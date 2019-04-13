@@ -18,7 +18,7 @@ const findScale = (min, max, count) => {
   return [bot, top - bot, top, step];
 };
 
-const minmax = (state, from, to) => {
+const findMinmax = (state, from, to) => {
   return state.ids.reduce(
     (acc, v) => {
       const chart = state.charts[v];
@@ -37,6 +37,23 @@ const minmax = (state, from, to) => {
     },
     [Infinity, -Infinity]
   );
+};
+
+const findScaledY = (chart, from, to, count) => {
+  const minmax = segmentTree.find(chart.mmtree, from, to, chart.values.length);
+  return findScale(minmax[0], minmax[1], count);
+};
+
+const findMatrix = (state, from, to) => {
+  if (state.y_scaled && state.ids.length === 2) {
+    return [
+      ...findScaledY(state.charts[state.ids[0]], from, to, state.grid.lines),
+      ...findScaledY(state.charts[state.ids[1]], from, to, state.grid.lines)
+    ];
+  }
+
+  const minmax = findMinmax(state, from, to);
+  return findScale(minmax[0], minmax[1], state.grid.lines);
 };
 
 const MONTH = [
@@ -102,7 +119,8 @@ const resize = canvas => {
 
 module.exports.formatDate = formatDate;
 module.exports.formatValue = formatValue;
-module.exports.minmax = minmax;
+module.exports.findMinmax = findMinmax;
+module.exports.findMatrix = findMatrix;
 module.exports.closest = closest;
 module.exports.bound = bound;
 module.exports.resize = resize;

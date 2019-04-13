@@ -7,14 +7,16 @@ const createView = require("./components/view");
 const createPreview = require("./components/preview");
 const createControls = require("./components/controls");
 const createTooltip = require("./components/tooltip");
+const createRange = require("./components/range");
 
 const createControlHandlers = require("./handlers/controls");
 const createTooltipHandler = require("./handlers/tooltip");
 const createPreviewHandler = require("./handlers/preview");
 
-const createDOM = (element, chart, controls, preview, tooltip) => {
+const createDOM = (element, chart, controls, preview, tooltip, range) => {
   element.className = "tc-wrapper";
 
+  element.appendChild(range);
   if (tooltip) chart.appendChild(tooltip);
 
   element.appendChild(chart);
@@ -46,6 +48,7 @@ module.exports = (element, data, options) => {
   const preview = createPreview(state);
   const controls = createControls(state);
   const tooltip = createTooltip(state);
+  const range = createRange(state);
 
   // Handle click events for toggle
   controls.register(
@@ -59,12 +62,16 @@ module.exports = (element, data, options) => {
 
   // Handle mouse and touch events for preview interactions
   preview.register(
-    createPreviewHandler(state, engine, [view.render, preview.render])
+    createPreviewHandler(state, engine, [
+      view.render,
+      preview.render,
+      range.render
+    ])
   );
 
   // Render all components for the first time
   engine.registerAnimation({
-    draw: [view.render, preview.render]
+    draw: [view.render, preview.render, range.render]
   });
 
   // Add elements to the DOM tree
@@ -73,7 +80,8 @@ module.exports = (element, data, options) => {
     view.element,
     controls.element,
     preview.element,
-    tooltip.element
+    tooltip.element,
+    range.element
   );
 
   // TODO: Destroy, update options, update data

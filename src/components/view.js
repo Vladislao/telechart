@@ -23,9 +23,6 @@ module.exports = state => {
   const tpcache = {};
   const tooltipCache = createCache(tpcache);
 
-  const ccache = {};
-  const canvasCache = createCache(ccache);
-
   const lcache = {};
   const linesCache = createCache(lcache);
 
@@ -105,7 +102,11 @@ module.exports = state => {
         c => {
           c.ymin = state.y0.matrix[0];
           c.yrange = state.y0.matrix[1];
-          c.height = canvas.height - tcache.fontSize - tcache.margin * 2;
+          c.height =
+            canvas.height -
+            tcache.fontSize -
+            tcache.margin * 2 -
+            tpcache.radius * 2;
           c.borderBottom = c.height - 1;
 
           c.scaleY = -c.height / c.yrange;
@@ -141,79 +142,49 @@ module.exports = state => {
       if (shouldDrawLines) {
         context.clearRect(0, 0, canvas.width, lcache.height);
 
-        canvasCache(
-          c =>
-            c.lineJoin !== "bevel" ||
-            c.lineCap !== "butt" ||
-            c.width !== state.y0.width,
-          c => {
-            context.lineJoin = c.lineJoin = "bevel";
-            context.lineCap = c.lineCap = "butt";
-            c.width = state.y0.width;
-
-            context.lineWidth = c.lineWidth =
-              state.y0.width * window.devicePixelRatio;
-          }
-        );
+        context.lineJoin = "bevel";
+        context.lineCap = "butt";
+        context.lineWidth = state.y0.lineWidth * window.devicePixelRatio;
 
         state.ids.forEach(v => {
           const chart = state.charts[v];
 
           if (chart.color.alpha === 0) return;
 
-          ccache.globalAlpha = context.globalAlpha = chart.color.alpha;
-          ccache.strokeStyle = context.strokeStyle = chart.color.hex;
+          context.globalAlpha = chart.color.alpha;
+          context.strokeStyle = chart.color.hex;
 
           drawLine(context, chart.values, lcache, lcache.border);
         });
 
-        canvasCache(
-          c =>
-            c.width !== state.grid.linewidth ||
-            c.globalAlpha !== state.grid.color.alpha ||
-            c.strokeStyle !== state.grid.color.hex,
-          c => {
-            c.width = state.axis.linewidth;
-
-            context.lineWidth = c.lineWidth =
-              state.grid.linewidth * window.devicePixelRatio;
-            context.globalAlpha = c.globalAlpha = state.grid.color.alpha;
-            context.strokeStyle = c.strokeStyle = state.grid.color.hex;
-          }
-        );
+        context.lineWidth = state.grid.linewidth * window.devicePixelRatio;
+        context.globalAlpha = state.grid.color.alpha;
+        context.strokeStyle = state.grid.color.hex;
 
         drawHorizontalLines(
           context,
           state.y0.matrix,
           lcache,
           canvas.width,
-          ccache.lineWidth
+          context.lineWidth
         );
 
         if (tpcache.x !== null) {
           drawVerticalLine(
             context,
             tpcache.left,
-            lcache.height - ccache.lineWidth * 1.5
+            lcache.height - context.lineWidth * 1.5
           );
 
-          canvasCache(
-            c => c.width !== state.y0.width,
-            c => {
-              c.width = state.y0.width;
-
-              context.lineWidth = c.lineWidth =
-                state.y0.width * window.devicePixelRatio;
-            }
-          );
+          context.lineWidth = state.y0.lineWidth * window.devicePixelRatio;
 
           state.ids.forEach(v => {
             const chart = state.charts[v];
 
             if (chart.color.alpha === 0) return;
 
-            ccache.globalAlpha = context.globalAlpha = chart.color.alpha;
-            ccache.strokeStyle = context.strokeStyle = chart.color.hex;
+            context.globalAlpha = chart.color.alpha;
+            context.strokeStyle = chart.color.hex;
 
             drawPoint(
               context,
@@ -225,19 +196,9 @@ module.exports = state => {
           });
         }
 
-        canvasCache(
-          c =>
-            c.baseFont !== state.axis.font ||
-            c.fillStyle !== state.axis.color.hex ||
-            c.globalAlpha !== state.axis.color.alpha ||
-            fontSizeChanged,
-          c => {
-            c.baseFont = state.axis.font;
-            context.font = c.font = `${tcache.fontSize}px ${state.axis.font}`;
-            context.fillStyle = c.fillStyle = state.axis.color.hex;
-            context.globalAlpha = c.globalAlpha = state.axis.color.alpha;
-          }
-        );
+        context.font = `${tcache.fontSize}px ${state.axis.font}`;
+        context.fillStyle = state.axis.color.hex;
+        context.globalAlpha = state.axis.color.alpha;
 
         const matrix = state.y0.matrix;
         for (let i = matrix[0]; i <= matrix[2]; i += matrix[3]) {
@@ -246,23 +207,42 @@ module.exports = state => {
             0,
             i * lcache.scaleY +
               lcache.offsetY -
-              ccache.lineWidth -
+              context.lineWidth -
               2 * window.devicePixelRatio
           );
         }
-      }
 
-      canvasCache(
-        c =>
-          c.baseFont !== state.axis.font ||
-          c.fillStyle !== state.axis.color.hex ||
-          fontSizeChanged,
-        c => {
-          c.baseFont = state.axis.font;
-          context.font = c.font = `${tcache.fontSize}px ${state.axis.font}`;
-          context.fillStyle = c.fillStyle = state.axis.color.hex;
+        if (state.y_scaled) {
+          linesCache(
+            c =>
+              c.y0min !== state.y0.matrix[4] ||
+              c.y0range !== state.y0.matrix[5] ||
+              fontSizeChanged,
+            c => {
+              c.y0min = state.y0.matrix[4];
+              c.y0range = state.y0.matrix[5];
+
+              c.scaleY0 = -c.height / c.y0range;
+              c.offsetY0 = c.height - c.y0min * c.scaleY0;
+
+              c.y0textWidth = Math.ceil(
+                context.measureText(formatValue(c.y0min)).width
+              );
+            }
+          );
+          for (let i = matrix[4]; i <= matrix[6]; i += matrix[7]) {
+            console.log(lcache.y0textWidth);
+            context.fillText(
+              formatValue(i),
+              canvas.width - lcache.y0textWidth,
+              i * lcache.scaleY0 +
+                lcache.offsetY0 -
+                context.lineWidth -
+                2 * window.devicePixelRatio
+            );
+          }
         }
-      );
+      }
 
       // update text size
       const textWidthChanged = textCache(
@@ -334,6 +314,8 @@ module.exports = state => {
           canvas.height - lcache.height
         );
 
+        context.font = `${tcache.fontSize}px ${state.axis.font}`;
+        context.fillStyle = state.axis.color.hex;
         context.globalAlpha = textBaseAlpha;
 
         for (

@@ -1,73 +1,37 @@
 const createCache = require("../utils/cache");
 const { formatDate } = require("../utils/transformation");
 
-const createValue = chart => {
-  const element = document.createElement("div");
-  element.className = "tc-tooltip__value";
-
-  const name = document.createElement("span");
-  const value = document.createElement("span");
-  value.style.color = chart.color.hex;
-
-  element.appendChild(name.appendChild(document.createTextNode(chart.name)));
-  element.appendChild(value);
-
-  const cache = createCache();
-
-  element.addEventListener("mouseover", e => {
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    e.preventDefault();
-  });
-
-  return {
-    id: chart.id,
-    element,
-    render: index => {
-      cache(
-        c => c.disabled !== chart.disabled || c.index !== index,
-        c => {
-          c.disabled = chart.disabled;
-          c.index = index;
-
-          if (chart.disabled) {
-            element.classList.add("tc-tooltip__value--hidden");
-          } else {
-            element.classList.remove("tc-tooltip__value--hidden");
-            if (index) {
-              value.textContent = chart.values[index];
-            }
-          }
-        }
-      );
-    }
-  };
-};
-
 module.exports = state => {
   const element = document.createElement("div");
   element.className = "tc-range";
 
+  const from = document.createElement("div");
+  const to = document.createElement("div");
+
+  element.appendChild(from);
+  element.appendChild(document.createTextNode(" - "));
+  element.appendChild(to);
+
   const cache = createCache();
+
+  const scroller = state.window;
 
   return {
     element,
     render: () => {
       cache(
-        c => c.index !== state.tooltip.index,
+        c =>
+          c.offset !== state.window.offsetFinal ||
+          c.width !== state.window.widthFinal,
         c => {
-          c.index = state.tooltip.index;
+          c.offset = state.window.offsetFinal;
+          c.width = state.window.widthFinal;
 
-          if (state.tooltip.index === null) {
-            element.classList.add("tc-tooltip--hidden");
-          } else {
-            element.classList.remove("tc-tooltip--hidden");
-            element.style.transform = `translateX(${state.tooltip.indexX -
-              width}px)`;
-            name.textContent = formatDate(state.x.values[c.index], "full");
-          }
-
-          values.forEach(v => v.render(c.index));
+          from.textContent = formatDate(state.x.values[c.offset], "date");
+          to.textContent = formatDate(
+            state.x.values[c.offset + c.width - 1],
+            "date"
+          );
         }
       );
     },

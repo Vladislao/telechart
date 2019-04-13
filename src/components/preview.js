@@ -17,9 +17,6 @@ module.exports = state => {
   const tcache = {};
   const trackerCache = createCache(tcache);
 
-  const ccache = {};
-  const canvasCache = createCache(ccache);
-
   const lcache = {};
   const linesCache = createCache(lcache);
 
@@ -122,19 +119,9 @@ module.exports = state => {
       if (shouldDraw) {
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        canvasCache(
-          c =>
-            c.lineJoin !== "bevel" ||
-            c.lineCap !== "butt" ||
-            c.width !== state.y.width,
-          c => {
-            context.lineJoin = c.lineJoin = "bevel";
-            context.lineCap = c.lineCap = "butt";
-            c.width = state.y.width;
-
-            context.lineWidth = state.y.width * window.devicePixelRatio;
-          }
-        );
+        context.lineJoin = "bevel";
+        context.lineCap = "butt";
+        context.lineWidth = state.y.lineWidth * window.devicePixelRatio;
 
         state.ids.forEach(v => {
           const chart = state.charts[v];
@@ -147,15 +134,8 @@ module.exports = state => {
           drawLine(context, chart.values, lcache);
         });
 
-        canvasCache(
-          c =>
-            c.globalAlpha !== mask.color.alpha ||
-            c.fillStyle !== mask.color.hex,
-          c => {
-            context.globalAlpha = c.globalAlpha = mask.color.alpha;
-            context.fillStyle = c.fillStyle = mask.color.hex;
-          }
-        );
+        context.globalAlpha = mask.color.alpha;
+        context.fillStyle = mask.color.hex;
 
         context.fillRect(
           0,
@@ -163,6 +143,7 @@ module.exports = state => {
           tcache.left,
           canvas.height - tcache.padding * 2
         );
+
         if (tcache.right !== canvas.width) {
           context.fillRect(
             tcache.right,
@@ -172,15 +153,8 @@ module.exports = state => {
           );
         }
 
-        canvasCache(
-          c =>
-            c.globalAlpha !== tracker.color.alpha ||
-            c.fillStyle !== tracker.color.hex,
-          c => {
-            context.globalAlpha = c.globalAlpha = tracker.color.alpha;
-            context.fillStyle = c.fillStyle = tracker.color.hex;
-          }
-        );
+        context.globalAlpha = tracker.color.alpha;
+        context.fillStyle = tracker.color.hex;
 
         drawTrack(
           context,

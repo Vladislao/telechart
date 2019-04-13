@@ -22,7 +22,7 @@
         <div id="chart1"></div>
       </div>
       <div class="chart">
-        <h3>Followers</h3>
+        <h3>Interactions</h3>
         <div id="chart2"></div>
       </div>
       <div class="chart">
@@ -84,6 +84,7 @@
             return response.json();
           })
           .then(function(json) {
+            console.log(json);
             telechart(document.getElementById("chart2"), json);
           });
         fetch("/data/3/overview.json")

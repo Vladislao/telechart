@@ -80,16 +80,21 @@ module.exports = state => {
         c => {
           c.index = state.tooltip.index;
 
+          const indexPosition = state.window.offsetFinal + c.index;
+
           if (state.tooltip.index === null) {
             element.classList.add("tc-tooltip--hidden");
           } else {
             element.classList.remove("tc-tooltip--hidden");
             element.style.transform = `translateX(${state.tooltip.indexX -
               width}px)`;
-            name.textContent = formatDate(state.x.values[c.index], "full");
+            name.textContent = formatDate(
+              state.x.values[indexPosition],
+              "full"
+            );
           }
 
-          values.forEach(v => v.render(c.index));
+          values.forEach(v => v.render(indexPosition));
         }
       );
     },

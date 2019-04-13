@@ -46,8 +46,7 @@ module.exports = (state, engine, render) => v => {
   );
   v.element.addEventListener(
     "mouseleave",
-    e => {
-      // if (e.target !== v.canvas) return;
+    () => {
       handleCancel();
     },
     engine.passive

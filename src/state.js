@@ -1,4 +1,4 @@
-const { closest, minmax, findScale } = require("./utils/transformation");
+const { closest, findMinmax, findMatrix } = require("./utils/transformation");
 const segmentTree = require("./utils/segmentTree");
 
 const getValues = (columns, id) => columns.find(v => v[0] === id).slice(1);
@@ -29,37 +29,39 @@ const create = data => {
 
   const x = getValues(data.columns, "x");
 
-  const windowOffset = 0; //closest(x.length, 0.6);
+  const windowOffset = closest(x.length, 0.6);
   const windowWidth = closest(x.length, 0.3);
 
-  const globalYMinmax = minmax({ ids, charts }, 0, x.length);
-  const windowYMinmax = minmax(
-    { ids, charts },
+  const globalYMinmax = findMinmax({ ids, charts }, 0, x.length);
+  const windowYMatrix = findMatrix(
+    { ids, charts, y_scaled: data.y_scaled, grid: { lines: 6 } },
     windowOffset,
     windowOffset + windowWidth
   );
-  const windowYScale = findScale(windowYMinmax[0], windowYMinmax[1], 6);
 
   // TODO: matrix to transform
 
   return {
     ids,
     charts,
+    y_scaled: data.y_scaled,
     x: {
       values: x,
       matrix: [0, x.length - 1]
     },
     y: {
-      width: 1,
+      lineWidth: 1,
       matrix: [globalYMinmax[0], globalYMinmax[1] - globalYMinmax[0]]
     },
     y0: {
-      width: 2,
-      matrix: windowYScale
+      lineWidth: 2,
+      matrix: windowYMatrix
     },
     window: {
       offset: windowOffset,
+      offsetFinal: windowOffset,
       width: windowWidth,
+      widthFinal: windowWidth,
       minwidth: closest(x.length, 0.2),
       tracker: {
         width: 10,
