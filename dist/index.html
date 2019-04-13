@@ -84,7 +84,6 @@
             return response.json();
           })
           .then(function(json) {
-            console.log(json);
             telechart(document.getElementById("chart2"), json);
           });
         fetch("/data/3/overview.json")

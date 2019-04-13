@@ -1,8 +1,8 @@
 const { animate, easeInOutQuad } = require("../utils/animation");
-const { findMinmax, findMatrix } = require("../utils/transformation");
+const { findMatrix } = require("../utils/transformation");
 
 const createShowAnimation = (state, chart, render) => {
-  const globalYMinmax = findMinmax(state, 0, state.x.values.length);
+  const globalYMatrix = findMatrix(state, 0, state.x.values.length);
   const windowYMatrix = findMatrix(
     state,
     state.window.offset,
@@ -19,7 +19,7 @@ const createShowAnimation = (state, chart, render) => {
       },
       {
         alpha: 1,
-        y: [globalYMinmax[0], globalYMinmax[1] - globalYMinmax[0]],
+        y: globalYMatrix,
         y0: windowYMatrix
       },
       step => {
@@ -36,7 +36,7 @@ const createShowAnimation = (state, chart, render) => {
 };
 
 const createHideAnimation = (state, chart, render) => {
-  const globalYMinmax = findMinmax(state, 0, state.x.values.length);
+  const globalYMatrix = findMatrix(state, 0, state.x.values.length);
   const windowYMatrix = findMatrix(
     state,
     state.window.offset,
@@ -53,7 +53,7 @@ const createHideAnimation = (state, chart, render) => {
       },
       {
         alpha: 0,
-        y: [globalYMinmax[0], globalYMinmax[1] - globalYMinmax[0]],
+        y: globalYMatrix,
         y0: windowYMatrix
       },
       step => {

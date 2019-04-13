@@ -1,12 +1,6 @@
 const { resize } = require("../utils/transformation");
 const { drawTrack } = require("../rendering/scroll");
 const drawLine = require("../rendering/line");
-const createCache = require("../utils/cache");
-// const { createAttributeInfo } = require("../utils/webgl");
-// const createRender = require("../utils/render");
-
-// const line = require("../rendering/line");
-// const box = require("../rendering/box");
 
 module.exports = state => {
   const canvas = document.createElement("canvas");
@@ -14,19 +8,9 @@ module.exports = state => {
 
   const context = canvas.getContext("2d");
 
-  // const tcache = {};
-  // const trackerCache = createCache(tcache);
-
-  // const lcache = {};
-  // const linesCache = createCache(lcache);
-
-  // const scroll = state.window;
-  // const tracker = scroll.tracker;
-  // const mask = scroll.mask;
-
   const chart = {};
   const track = {};
-  const previousState = { charts: {}, y: { matrix: [] }, window: {} };
+  const previousState = { charts: {}, y: {}, window: {} };
 
   const cache = {
     chart,
@@ -71,20 +55,6 @@ module.exports = state => {
         chart.offsetX = 0;
       }
 
-      if (
-        force ||
-        previousState.y.matrix[0] !== state.y.matrix[0] ||
-        previousState.y.matrix[1] !== state.y.matrix[1]
-      ) {
-        previousState.y.matrix[0] = state.y.matrix[0];
-        previousState.y.matrix[1] = state.y.matrix[1];
-
-        chart.scaleY = -chart.height / state.y.matrix[1];
-        chart.offsetY = chart.height - state.y.matrix[0] * chart.scaleY;
-
-        shouldDraw = true;
-      }
-
       // update chart colors
       for (let i = 0; i < state.ids.length; i++) {
         const v = state.ids[i];
@@ -118,6 +88,58 @@ module.exports = state => {
         shouldDraw = true;
       }
 
+      if (state.y_scaled) {
+        if (!previousState.y.matrix) {
+          previousState.y.matrix = [[-1, -1], [-1, -1]];
+        }
+
+        if (
+          force ||
+          previousState.y.matrix[0][0] !== state.y.matrix[0][0] ||
+          previousState.y.matrix[0][1] !== state.y.matrix[0][1]
+        ) {
+          previousState.y.matrix[0][0] = state.y.matrix[0][0];
+          previousState.y.matrix[0][1] = state.y.matrix[0][1];
+
+          chart.scaleY0 = -chart.height / state.y.matrix[0][1];
+          chart.offsetY0 = chart.height - state.y.matrix[0][0] * chart.scaleY0;
+
+          shouldDraw = true;
+        }
+
+        if (
+          force ||
+          previousState.y.matrix[1][0] !== state.y.matrix[1][0] ||
+          previousState.y.matrix[1][1] !== state.y.matrix[1][1]
+        ) {
+          previousState.y.matrix[1][0] = state.y.matrix[1][0];
+          previousState.y.matrix[1][1] = state.y.matrix[1][1];
+
+          chart.scaleY1 = -chart.height / state.y.matrix[1][1];
+          chart.offsetY1 = chart.height - state.y.matrix[1][0] * chart.scaleY1;
+
+          shouldDraw = true;
+        }
+      } else {
+        if (!previousState.y.matrix) {
+          previousState.y.matrix = [-1, -1];
+        }
+
+        if (
+          force ||
+          previousState.y.matrix[0] !== state.y.matrix[0] ||
+          previousState.y.matrix[1] !== state.y.matrix[1]
+        ) {
+          previousState.y.matrix[0] = state.y.matrix[0];
+          previousState.y.matrix[1] = state.y.matrix[1];
+
+          chart.scaleY = -chart.height / state.y.matrix[1];
+          chart.offsetY = chart.height - state.y.matrix[0] * chart.scaleY;
+
+          shouldDraw = true;
+        }
+      }
+
       if (shouldDraw) {
         context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -125,16 +147,32 @@ module.exports = state => {
         context.lineCap = "butt";
         context.lineWidth = chart.lineWidth;
 
-        for (let i = 0; i < state.ids.length; i++) {
-          const v = state.ids[i];
-          const line = state.charts[v];
+        if (state.y_scaled) {
+          for (let i = 0; i < 2; i++) {
+            const v = state.ids[i];
+            const line = state.charts[v];
 
-          if (line.color.alpha === 0) continue;
+            if (line.color.alpha === 0) continue;
 
-          context.globalAlpha = line.color.alpha;
-          context.strokeStyle = line.color.hex;
+            context.globalAlpha = line.color.alpha;
+            context.strokeStyle = line.color.hex;
 
-          drawLine(context, line.values, chart);
+            chart.scaleY = chart[`scaleY${i}`];
+            chart.offsetY = chart[`offsetY${i}`];
+            drawLine(context, line.values, chart);
+          }
+        } else {
+          for (let i = 0; i < state.ids.length; i++) {
+            const v = state.ids[i];
+            const line = state.charts[v];
+
+            if (line.color.alpha === 0) continue;
+
+            context.globalAlpha = line.color.alpha;
+            context.strokeStyle = line.color.hex;
+
+            drawLine(context, line.values, chart);
+          }
         }
 
         context.globalAlpha = state.window.mask.color.alpha;

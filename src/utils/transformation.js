@@ -18,6 +18,19 @@ const findScale = (min, max, count) => {
   return [bot, top - bot, top, step];
 };
 
+// const findScale = (min, max, count) => {
+//   const range = max - min;
+
+//   const roughStep = range / (count - 1);
+//   const stepPower = Math.pow(10, Math.floor(Math.log10(Math.abs(roughStep))));
+//   const step = (Math.ceil(roughStep / stepPower) + 0.5) * stepPower;
+
+//   const bot = step * Math.floor(min / step);
+//   const top = step * Math.ceil(max / step);
+
+//   return [bot, top - bot, top, step];
+// };
+
 const findMinmax = (state, from, to) => {
   return state.ids.reduce(
     (acc, v) => {

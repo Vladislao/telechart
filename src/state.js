@@ -1,4 +1,4 @@
-const { closest, findMinmax, findMatrix } = require("./utils/transformation");
+const { closest, findMatrix } = require("./utils/transformation");
 const segmentTree = require("./utils/segmentTree");
 
 const getValues = (columns, id) => columns.find(v => v[0] === id).slice(1);
@@ -32,7 +32,11 @@ const create = data => {
   const windowOffset = closest(x.length, 0.6);
   const windowWidth = closest(x.length, 0.3);
 
-  const globalYMinmax = findMinmax({ ids, charts }, 0, x.length);
+  const globalYMinmax = findMatrix(
+    { ids, charts, y_scaled: data.y_scaled, grid: { lines: 6 } },
+    0,
+    x.length
+  );
   const windowYMatrix = findMatrix(
     { ids, charts, y_scaled: data.y_scaled, grid: { lines: 6 } },
     windowOffset,
@@ -45,13 +49,14 @@ const create = data => {
     ids,
     charts,
     y_scaled: data.y_scaled,
+    stacked: data.stacked,
     x: {
       values: x,
       matrix: [0, x.length - 1]
     },
     y: {
       lineWidth: 1,
-      matrix: [globalYMinmax[0], globalYMinmax[1] - globalYMinmax[0]]
+      matrix: globalYMinmax
     },
     y0: {
       lineWidth: 2,

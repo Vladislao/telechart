@@ -21,6 +21,7 @@ module.exports = {
     "arrow-parens": ["error", "as-needed"],
     "no-param-reassign": ["error", { props: false }],
     "no-underscore-dangle": 0,
-    "prefer-destructuring": 0
+    "prefer-destructuring": 0,
+    "no-bitwise": 0
   }
 };
