@@ -25,3 +25,14 @@ module.exports = () => {
     return output;
   };
 };
+
+const runOnce = func => {
+  let done = false;
+
+  return function once() {
+    if (done) return;
+
+    let done = true;
+    func.apply(null, arguments);
+  };
+};

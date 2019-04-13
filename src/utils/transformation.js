@@ -47,8 +47,8 @@ const findScaledY = (chart, from, to, count) => {
 const findMatrix = (state, from, to) => {
   if (state.y_scaled && state.ids.length === 2) {
     return [
-      ...findScaledY(state.charts[state.ids[0]], from, to, state.grid.lines),
-      ...findScaledY(state.charts[state.ids[1]], from, to, state.grid.lines)
+      findScaledY(state.charts[state.ids[0]], from, to, state.grid.lines),
+      findScaledY(state.charts[state.ids[1]], from, to, state.grid.lines)
     ];
   }
 

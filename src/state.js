@@ -59,9 +59,7 @@ const create = data => {
     },
     window: {
       offset: windowOffset,
-      offsetFinal: windowOffset,
       width: windowWidth,
-      widthFinal: windowWidth,
       minwidth: closest(x.length, 0.2),
       tracker: {
         width: 10,
@@ -82,14 +80,17 @@ const create = data => {
       }
     },
     tooltip: {
+      lineWidth: 1,
+      color: {
+        hex: "#182D3B",
+        alpha: 0.1
+      },
       radius: 3,
-      index: null,
-      x: null,
-      y: null
+      index: null
     },
     grid: {
       lines: 6,
-      linewidth: 1,
+      lineWidth: 1,
       color: {
         hex: "#182D3B",
         alpha: 0.1

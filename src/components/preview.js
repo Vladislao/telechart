@@ -14,176 +14,174 @@ module.exports = state => {
 
   const context = canvas.getContext("2d");
 
-  const tcache = {};
-  const trackerCache = createCache(tcache);
+  // const tcache = {};
+  // const trackerCache = createCache(tcache);
 
-  const lcache = {};
-  const linesCache = createCache(lcache);
+  // const lcache = {};
+  // const linesCache = createCache(lcache);
 
-  const scroll = state.window;
-  const tracker = scroll.tracker;
-  const mask = scroll.mask;
+  // const scroll = state.window;
+  // const tracker = scroll.tracker;
+  // const mask = scroll.mask;
 
-  let resizedOnce = false;
+  const chart = {};
+  const track = {};
+  const previousState = { charts: {}, y: { matrix: [] }, window: {} };
+
+  const cache = {
+    chart,
+    track,
+    state: previousState
+  };
 
   return {
     element: canvas,
-    render: () => {
-      if (!resizedOnce) {
+    render: force => {
+      let shouldDraw = force;
+
+      if (force) {
         resize(canvas);
-        resizedOnce = true;
+
+        const dpr = window.devicePixelRatio;
+
+        // track
+        track.padding = 1 * dpr;
+        track.borderRadius = 5 * dpr;
+        track.width = (state.window.tracker.width || 10) * dpr;
+
+        // chart
+        chart.lineWidth = state.y.lineWidth * dpr;
+        chart.width = canvas.width;
+        chart.height = canvas.height - track.padding * 2;
+
+        chart.x = 0;
+        chart.y = track.padding;
+
+        chart.region = {
+          x: 0,
+          y: 0,
+          width: canvas.width,
+          height: canvas.height
+        };
+
+        chart.start = 0;
+        chart.range = state.x.values.length;
+
+        chart.scaleX = canvas.width / chart.range;
+        chart.offsetX = 0;
       }
 
-      let shouldDraw = false;
+      if (
+        force ||
+        previousState.y.matrix[0] !== state.y.matrix[0] ||
+        previousState.y.matrix[1] !== state.y.matrix[1]
+      ) {
+        previousState.y.matrix[0] = state.y.matrix[0];
+        previousState.y.matrix[1] = state.y.matrix[1];
 
-      const trackerSizeChanged = trackerCache(
-        c => c._trackerW !== tracker.width,
-        c => {
-          c._trackerW = tracker.width;
+        chart.scaleY = -chart.height / state.y.matrix[1];
+        chart.offsetY = chart.height - state.y.matrix[0] * chart.scaleY;
 
-          c.trackerW = c._trackerW * window.devicePixelRatio;
-          c.padding = 1 * window.devicePixelRatio;
-          c.borderRadius = 5 * window.devicePixelRatio;
+        shouldDraw = true;
+      }
+
+      // update chart colors
+      for (let i = 0; i < state.ids.length; i++) {
+        const v = state.ids[i];
+        if (!(v in previousState.charts)) {
+          previousState.charts[v] = { color: {} };
         }
-      );
-      shouldDraw = shouldDraw || trackerSizeChanged;
 
-      const length = state.x.values.length - 1;
-      const xBoundsChanged = linesCache(
-        c => c.range !== length,
-        c => {
-          c.start = 0;
-          c.range = length;
+        const current = state.charts[v].color;
+        const previous = previousState.charts[v].color;
 
-          c.scaleX = canvas.width / c.range;
-          c.offsetX = 0;
+        if (previous.hex !== current.hex || previous.alpha !== current.alpha) {
+          previous.hex = current.hex;
+          previous.alpha = current.alpha;
+          shouldDraw = true;
         }
-      );
-      shouldDraw = shouldDraw || xBoundsChanged;
+      }
 
-      const yBoundsChanged = linesCache(
-        c => c.ymin !== state.y.matrix[0] || c.yrange !== state.y.matrix[1],
-        c => {
-          c.ymin = state.y.matrix[0];
-          c.yrange = state.y.matrix[1];
+      if (
+        force ||
+        previousState.window.offset !== state.window.offset ||
+        previousState.window.width !== state.window.width
+      ) {
+        previousState.window.offset = state.window.offset;
+        previousState.window.width = state.window.width;
 
-          c.scaleY = -(canvas.height - tcache.padding * 2) / state.y.matrix[1];
-          c.offsetY =
-            canvas.height - state.y.matrix[0] * c.scaleY - tcache.padding;
-          c.borderBottom = canvas.height;
-        }
-      );
-      shouldDraw = shouldDraw || yBoundsChanged;
+        track.left = state.window.offset * chart.scaleX + track.width;
+        track.right =
+          (state.window.offset + state.window.width) * chart.scaleX -
+          track.width;
 
-      // update color and alpha
-      const colorsChanged = linesCache(
-        c =>
-          state.ids.some(v => {
-            if (!(v in c)) return true;
-
-            const ci = c[v];
-            const color = state.charts[v].color;
-
-            return color.alpha !== ci.alpha || color.hex !== ci.hex;
-          }),
-        c =>
-          state.ids.forEach(v => {
-            if (!(v in c)) c[v] = {};
-
-            const ci = c[v];
-            const color = state.charts[v].color;
-
-            ci.alpha = color.alpha;
-            ci.hex = color.hex;
-          })
-      );
-      shouldDraw = shouldDraw || colorsChanged;
-
-      const trackerPositionChanged = trackerCache(
-        c =>
-          c.scrollOffset !== scroll.offset ||
-          c.scrollWidth !== scroll.width ||
-          trackerSizeChanged ||
-          xBoundsChanged,
-        c => {
-          c.scrollOffset = scroll.offset;
-          c.scrollWidth = scroll.width;
-
-          c.left = c.scrollOffset * lcache.scaleX + c.trackerW;
-          c.right =
-            (c.scrollOffset + c.scrollWidth - 1) * lcache.scaleX - c.trackerW;
-        }
-      );
-      shouldDraw = shouldDraw || trackerPositionChanged;
+        shouldDraw = true;
+      }
 
       if (shouldDraw) {
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         context.lineJoin = "bevel";
         context.lineCap = "butt";
-        context.lineWidth = state.y.lineWidth * window.devicePixelRatio;
+        context.lineWidth = chart.lineWidth;
 
-        state.ids.forEach(v => {
-          const chart = state.charts[v];
+        for (let i = 0; i < state.ids.length; i++) {
+          const v = state.ids[i];
+          const line = state.charts[v];
 
-          if (chart.color.alpha === 0) return;
+          if (line.color.alpha === 0) continue;
 
-          context.globalAlpha = chart.color.alpha;
-          context.strokeStyle = chart.color.hex;
+          context.globalAlpha = line.color.alpha;
+          context.strokeStyle = line.color.hex;
 
-          drawLine(context, chart.values, lcache);
-        });
+          drawLine(context, line.values, chart);
+        }
 
-        context.globalAlpha = mask.color.alpha;
-        context.fillStyle = mask.color.hex;
+        context.globalAlpha = state.window.mask.color.alpha;
+        context.fillStyle = state.window.mask.color.hex;
 
-        context.fillRect(
-          0,
-          tcache.padding,
-          tcache.left,
-          canvas.height - tcache.padding * 2
-        );
+        context.fillRect(chart.x, chart.y, track.left, chart.height);
 
-        if (tcache.right !== canvas.width) {
+        if (track.right !== canvas.width) {
           context.fillRect(
-            tcache.right,
-            tcache.padding,
-            canvas.width - tcache.right,
-            canvas.height - tcache.padding * 2
+            track.right,
+            chart.y,
+            canvas.width - track.right,
+            chart.height
           );
         }
 
-        context.globalAlpha = tracker.color.alpha;
-        context.fillStyle = tracker.color.hex;
+        context.globalAlpha = state.window.tracker.color.alpha;
+        context.fillStyle = state.window.tracker.color.hex;
 
         drawTrack(
           context,
-          tcache.left,
-          tcache.trackerW,
+          track.left,
+          track.width,
           canvas.height,
-          tcache.borderRadius,
+          track.borderRadius,
           1
         );
         drawTrack(
           context,
-          tcache.right,
-          -tcache.trackerW,
+          track.right,
+          -track.width,
           canvas.height,
-          tcache.borderRadius,
+          track.borderRadius,
           -1
         );
 
         context.fillRect(
-          tcache.left,
+          track.left,
           0,
-          tcache.right - tcache.left,
-          tcache.padding
+          track.right - track.left,
+          track.padding
         );
         context.fillRect(
-          tcache.left,
-          canvas.height - tcache.padding,
-          tcache.right - tcache.left,
-          tcache.padding
+          track.left,
+          canvas.height - track.padding,
+          track.right - track.left,
+          track.padding
         );
       }
     },

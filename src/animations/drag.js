@@ -17,10 +17,10 @@ const createAnimation = (state, nextOffset, nextWidth, ms) => {
     },
     step => {
       state.window.offset = step.offset;
-      state.window.offsetFinal = nextOffset;
+      state.window.offsetD = nextOffset;
 
       state.window.width = step.width;
-      state.window.widthFinal = nextWidth;
+      state.window.widthD = nextWidth;
 
       state.y0.matrix = step.y0;
     },
@@ -127,10 +127,10 @@ const createInspectAnimation = (state, event, render) => {
       },
       step => {
         state.window.offset = step.offset;
-        state.window.offsetFinal = event.offset;
+        state.window.offsetD = event.offset;
 
         state.window.width = step.width;
-        state.window.widthFinal = event.width;
+        state.window.widthD = event.width;
 
         state.y0.matrix = step.y0;
       },

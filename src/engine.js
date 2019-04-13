@@ -71,10 +71,11 @@ module.exports = () => {
       render: ms => {
         // collect components that requires repainting
         const draw = [];
-
+        let force = false;
         // run animations, filter finished ones
         engine.animations = engine.animations.filter(v => {
           draw.push(v.draw);
+          force = force || v.force;
           return v.update ? v.update(ms) : false;
         });
 
@@ -85,7 +86,7 @@ module.exports = () => {
           v.forEach(component => {
             if (finished.some(c => c === component)) return;
             finished.push(component);
-            component();
+            component(force);
             count += 1;
           })
         );

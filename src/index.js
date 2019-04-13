@@ -69,11 +69,6 @@ module.exports = (element, data, options) => {
     ])
   );
 
-  // Render all components for the first time
-  engine.registerAnimation({
-    draw: [view.render, preview.render, range.render]
-  });
-
   // Add elements to the DOM tree
   createDOM(
     element,
@@ -83,6 +78,12 @@ module.exports = (element, data, options) => {
     tooltip.element,
     range.element
   );
+
+  // Render all components for the first time
+  engine.registerAnimation({
+    force: true,
+    draw: [view.render, preview.render, range.render, tooltip.render]
+  });
 
   // TODO: Destroy, update options, update data
   // TODO: Might be an API

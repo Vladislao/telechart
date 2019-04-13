@@ -1,17 +1,32 @@
-const drawHorizontalLines = (context, matrix, position, width, yshift) => {
+const drawHorizontalLines = (context, matrix, position) => {
   context.beginPath();
   for (let i = matrix[0]; i <= matrix[2]; i += matrix[3]) {
-    const ylineh = i * position.scaleY + position.offsetY - yshift;
-    context.moveTo(0, ylineh);
-    context.lineTo(width, ylineh);
+    const y = position.y + i * position.scaleY + position.offsetY;
+    context.moveTo(position.x, y);
+    context.lineTo(position.width, y);
   }
   context.stroke();
 };
 
-const drawVerticalLine = (context, left, height) => {
+// TODO: pass formated values
+const drawYText = (context, matrix, x, position, format) => {
+  for (let i = matrix[0]; i <= matrix[2]; i += matrix[3]) {
+    context.fillText(
+      format(i, "short"),
+      x,
+      position.y +
+        i * position.scaleY +
+        position.offsetY -
+        position.lineWidth -
+        position.lineWidth
+    );
+  }
+};
+
+const drawVerticalLine = (context, x, position) => {
   context.beginPath();
-  context.moveTo(left, 0);
-  context.lineTo(left, height);
+  context.moveTo(x, 0);
+  context.lineTo(x, position.height);
   context.stroke();
 };
 
@@ -32,3 +47,4 @@ const drawPoint = (context, x, y, radius) => {
 module.exports.drawHorizontalLines = drawHorizontalLines;
 module.exports.drawVerticalLine = drawVerticalLine;
 module.exports.drawPoint = drawPoint;
+module.exports.drawYText = drawYText;

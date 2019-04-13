@@ -1,7 +1,6 @@
-const createCache = require("../utils/cache");
 const { formatDate } = require("../utils/transformation");
 
-module.exports = state => {
+module.exports = (state, options) => {
   const element = document.createElement("div");
   element.className = "tc-range";
 
@@ -9,31 +8,44 @@ module.exports = state => {
   const to = document.createElement("div");
 
   element.appendChild(from);
-  element.appendChild(document.createTextNode(" - "));
+  element.appendChild(
+    document.createElement("div").appendChild(document.createTextNode(" - "))
+  );
   element.appendChild(to);
 
-  const cache = createCache();
-
-  const scroller = state.window;
+  const previousState = { window: {} };
+  const cache = {};
 
   return {
     element,
-    render: () => {
-      cache(
-        c =>
-          c.offset !== state.window.offsetFinal ||
-          c.width !== state.window.widthFinal,
-        c => {
-          c.offset = state.window.offsetFinal;
-          c.width = state.window.widthFinal;
+    render: force => {
+      const offset =
+        state.window.offsetD === undefined
+          ? Math.trunc(state.window.offset)
+          : state.window.offsetD;
+      const width =
+        state.window.widthD === undefined
+          ? Math.trunc(state.window.width)
+          : state.window.widthD;
 
-          from.textContent = formatDate(state.x.values[c.offset], "date");
-          to.textContent = formatDate(
-            state.x.values[c.offset + c.width - 1],
-            "date"
-          );
-        }
-      );
+      if (force) {
+        cache.formatX = (options && options.formatX) || formatDate;
+      }
+
+      if (
+        force ||
+        previousState.window.widthD !== width ||
+        previousState.window.offsetD !== offset
+      ) {
+        previousState.window.widthD = width;
+        previousState.window.offsetD = offset;
+
+        from.textContent = cache.formatX(state.x.values[offset], "date");
+        to.textContent = cache.formatX(
+          state.x.values[offset + width - 1],
+          "date"
+        );
+      }
     },
     register: () => {}
   };

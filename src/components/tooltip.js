@@ -1,4 +1,3 @@
-const createCache = require("../utils/cache");
 const { formatDate } = require("../utils/transformation");
 
 const createValue = chart => {
@@ -12,39 +11,38 @@ const createValue = chart => {
   element.appendChild(name.appendChild(document.createTextNode(chart.name)));
   element.appendChild(value);
 
-  const cache = createCache();
+  // element.addEventListener("mouseover", e => {
+  //   e.stopPropagation();
+  //   e.stopImmediatePropagation();
+  //   e.preventDefault();
+  // });
 
-  element.addEventListener("mouseover", e => {
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    e.preventDefault();
-  });
+  const previousState = {};
 
   return {
     id: chart.id,
     element,
-    render: index => {
-      cache(
-        c => c.disabled !== chart.disabled || c.index !== index,
-        c => {
-          c.disabled = chart.disabled;
-          c.index = index;
-
-          if (chart.disabled) {
-            element.classList.add("tc-tooltip__value--hidden");
-          } else {
-            element.classList.remove("tc-tooltip__value--hidden");
-            if (index) {
-              value.textContent = chart.values[index];
-            }
-          }
+    render: (force, index) => {
+      if (force || previousState.disabled !== chart.disabled) {
+        previousState.disabled = chart.disabled;
+        if (chart.disabled) {
+          element.classList.add("tc-tooltip__value--hidden");
+        } else {
+          element.classList.remove("tc-tooltip__value--hidden");
         }
-      );
+      }
+
+      if (force || previousState.index !== index) {
+        previousState.index = index;
+        if (index) {
+          value.textContent = chart.values[index];
+        }
+      }
     }
   };
 };
 
-module.exports = state => {
+module.exports = (state, options) => {
   const element = document.createElement("div");
   element.className = "tc-tooltip tc-tooltip--hidden";
 
@@ -64,39 +62,36 @@ module.exports = state => {
   element.appendChild(name);
   element.appendChild(wrapper);
 
-  const cache = createCache();
-
-  let width = null;
+  const previousState = { tooltip: {} };
+  const cache = {};
 
   return {
     element,
-    render: () => {
-      if (!width) {
-        width = element.clientWidth / 2;
+    render: force => {
+      if (force) {
+        cache.formatX = (options && options.formatX) || formatDate;
       }
 
-      cache(
-        c => c.index !== state.tooltip.index,
-        c => {
-          c.index = state.tooltip.index;
+      if (force || previousState.tooltip.indexD !== state.tooltip.indexD) {
+        previousState.tooltip.indexD = state.tooltip.indexD;
 
-          const indexPosition = state.window.offsetFinal + c.index;
+        if (state.tooltip.index === null) {
+          element.classList.add("tc-tooltip--hidden");
+        } else {
+          element.classList.remove("tc-tooltip--hidden");
+          element.style.transform = `translateX(${state.tooltip.indexX +
+            10}px)`;
 
-          if (state.tooltip.index === null) {
-            element.classList.add("tc-tooltip--hidden");
-          } else {
-            element.classList.remove("tc-tooltip--hidden");
-            element.style.transform = `translateX(${state.tooltip.indexX -
-              width}px)`;
-            name.textContent = formatDate(
-              state.x.values[indexPosition],
-              "full"
-            );
-          }
+          const offset =
+            state.window.offsetD === undefined
+              ? Math.trunc(state.window.offset)
+              : state.window.offsetD;
 
-          values.forEach(v => v.render(indexPosition));
+          const index = offset + state.tooltip.indexD;
+          name.textContent = cache.formatX(state.x.values[index], "full");
+          values.forEach(v => v.render(force, index));
         }
-      );
+      }
     },
     register: () => {}
   };
