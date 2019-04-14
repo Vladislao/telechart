@@ -4,7 +4,8 @@ const {
   drawYText,
   drawVerticalLine,
   drawPoint,
-  drawBar
+  drawBar,
+  drawStackedBar
 } = require("./grid");
 
 module.exports = (state, context, cache, modes) => {
@@ -40,6 +41,10 @@ module.exports = (state, context, cache, modes) => {
     context.lineCap = "butt";
     context.lineWidth = chart.lineWidth;
 
+    if (cache.stack) {
+      cache.stack.first = true;
+    }
+
     for (let i = 0; i < state.ids.length; i++) {
       const v = state.ids[i];
       const line = state.charts[v];
@@ -50,17 +55,38 @@ module.exports = (state, context, cache, modes) => {
 
       if (line.type === "bar") {
         context.fillStyle = line.color.hex;
-        drawBar(
-          context,
-          line.values,
-          chart,
-          tooltip.indexD,
-          tooltip.lighten[v]
-        );
+        if (state.stacked) {
+          drawStackedBar(
+            context,
+            line.values,
+            chart,
+            tooltip.indexD,
+            tooltip.lighten[v],
+            state.y0.matrix[2],
+            state.y.sum,
+            cache.stack,
+            line.color.alpha
+          );
+          cache.stack.first = false;
+        } else {
+          drawBar(
+            context,
+            line.values,
+            chart,
+            tooltip.indexD,
+            tooltip.lighten[v]
+          );
+        }
       } else {
         context.strokeStyle = line.color.hex;
         drawLine(context, line.values, chart);
       }
+
+      // if (state.stacked) {
+      //   for (let j = 0; j <= state.x.values.length; j++) {
+      //     stack[j] = (stack[j] || 0) + line.values[j];
+      //   }
+      // }
     }
 
     context.lineWidth = grid.lineWidth;
@@ -98,6 +124,8 @@ module.exports = (state, context, cache, modes) => {
     context.globalAlpha = state.axis.color.alpha;
 
     // TODO: pass formated values
+    context.textAlign = "start";
+    context.textBaseline = "bottom";
     drawYText(context, state.y0.matrix, 0, chart, cache.formatY);
   }
 };

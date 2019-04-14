@@ -1,4 +1,4 @@
-const { closest, findMatrix } = require("./utils/transformation");
+const { closest, findMatrix, findSum } = require("./utils/transformation");
 const segmentTree = require("./utils/segmentTree");
 
 const getValues = (columns, id) => columns.find(v => v[0] === id).slice(1);
@@ -6,7 +6,6 @@ const getValues = (columns, id) => columns.find(v => v[0] === id).slice(1);
 const createCharts = (ids, data) =>
   ids.reduce((acc, v) => {
     const values = getValues(data.columns, v);
-    const mmtree = segmentTree.create(values);
 
     acc[v] = {
       id: v,
@@ -17,62 +16,36 @@ const createCharts = (ids, data) =>
         alpha: 1
       },
       disabled: false,
-      values,
-      mmtree
+      values
     };
+
     return acc;
   }, {});
 
 const create = data => {
   const ids = Object.keys(data.names);
-  const charts = createCharts(ids, data);
-
   const x = getValues(data.columns, "x");
+  const charts = createCharts(ids, data);
 
   const windowOffset = closest(x.length, 0.6);
   const windowWidth = closest(x.length, 0.3);
 
-  const globalYMinmax = findMatrix(
-    {
-      ids,
-      charts,
-      y_scaled: data.y_scaled,
-      stacked: data.stacked,
-      grid: { lines: 5 }
-    },
-    0,
-    x.length
-  );
-  const windowYMatrix = findMatrix(
-    {
-      ids,
-      charts,
-      y_scaled: data.y_scaled,
-      stacked: data.stacked,
-      grid: { lines: 5 }
-    },
-    windowOffset,
-    windowOffset + windowWidth
-  );
-
-  // TODO: matrix to transform
-
-  return {
+  const state = {
     ids,
     charts,
-    y_scaled: data.y_scaled,
-    stacked: data.stacked,
+    y_scaled: !!data.y_scaled,
+    stacked: !!data.stacked,
     x: {
       values: x,
       matrix: [0, x.length - 1]
     },
     y: {
       lineWidth: 1,
-      matrix: globalYMinmax
+      matrix: [-1, -1, -1]
     },
     y0: {
       lineWidth: 2,
-      matrix: windowYMatrix
+      matrix: [-1, -1, -1]
     },
     window: {
       offset: windowOffset,
@@ -122,6 +95,21 @@ const create = data => {
       }
     }
   };
+
+  if (data.stacked) {
+    state.y.sum = findSum(state);
+    state.y.mmtree = segmentTree.create(state.y.sum);
+  } else {
+    ids.forEach(v => {
+      const chart = charts[v];
+      chart.mmtree = segmentTree.create(chart.values);
+    });
+  }
+
+  state.y.matrix = findMatrix(state, 0, x.length);
+  state.y0.matrix = findMatrix(state, windowOffset, windowOffset + windowWidth);
+
+  return state;
 };
 
 module.exports = create;

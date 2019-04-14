@@ -11,15 +11,12 @@ const drawHorizontalLines = (context, count, position) => {
 
 // TODO: pass formated values
 const drawYText = (context, matrix, x, position, format) => {
-  for (let i = matrix[0]; i <= matrix[2]; i += matrix[3]) {
+  const end = ((matrix[2] - matrix[3]) | 0) + 1;
+  for (let i = matrix[0]; i <= end; i += matrix[3]) {
     context.fillText(
       format(i, "short"),
       x,
-      position.y +
-        i * position.scaleY +
-        position.offsetY -
-        position.lineWidth -
-        position.lineWidth
+      position.y + i * position.scaleY + position.offsetY
     );
   }
 };
@@ -45,11 +42,88 @@ const drawPoint = (context, x, y, radius) => {
   context.globalCompositeOperation = previous;
 };
 
+const drawStackedBar = (
+  context,
+  values,
+  position,
+  highlight,
+  lighten,
+  max,
+  sum,
+  stack,
+  alpha
+) => {
+  const last = position.range + 1;
+  const fillStyle = context.fillStyle;
+
+  if (highlight !== null) {
+    context.fillStyle = lighten;
+  }
+
+  for (let i = 0; i <= last; i += 1) {
+    const index = position.start + i;
+    if (index === highlight) continue;
+
+    const total = sum[index];
+    const ntotal = total / max;
+    const inc = stack.first ? 0 : stack.values[index];
+
+    const y0 = position.y + position.height * (1 - ntotal);
+    const height0 = position.height * ntotal;
+
+    const y = y0 + inc;
+    const height = height0 * (values[index] / total) * alpha;
+
+    // if (height < 1) continue;
+
+    context.fillRect(
+      position.x +
+        i * position.scaleX +
+        position.offsetX -
+        position.scaleX / 2 -
+        0.5,
+      y,
+      position.scaleX + 1,
+      height
+    );
+
+    stack.values[index] = inc + height;
+  }
+
+  if (highlight !== null) {
+    const total = sum[highlight];
+    const ntotal = total / max;
+    const inc = stack.first ? 0 : stack.values[highlight];
+
+    const y0 = position.y + position.height * (1 - ntotal);
+    const height0 = position.height * ntotal;
+
+    const y = y0 + inc;
+    const height = height0 * (values[highlight] / total) * alpha;
+
+    // if (height < 1) return;
+
+    context.fillStyle = fillStyle;
+
+    context.fillRect(
+      position.x +
+        (highlight - position.start) * position.scaleX +
+        position.offsetX -
+        position.scaleX / 2,
+      y,
+      position.scaleX,
+      height
+    );
+
+    stack.values[highlight] = inc + height;
+  }
+};
+
 const drawBar = (context, values, position, highlight, lighten) => {
   const last = position.range + 1;
   const fillStyle = context.fillStyle;
 
-  if (highlight) {
+  if (highlight !== null) {
     context.fillStyle = lighten;
   }
 
@@ -74,11 +148,12 @@ const drawBar = (context, values, position, highlight, lighten) => {
     );
   }
 
-  if (highlight) {
+  if (highlight !== null) {
     const y =
       position.y + values[highlight] * position.scaleY + position.offsetY;
     const height = position.height - y + position.y;
 
+    if (height < 1) return;
     context.fillStyle = fillStyle;
 
     context.fillRect(
@@ -97,4 +172,5 @@ module.exports.drawHorizontalLines = drawHorizontalLines;
 module.exports.drawVerticalLine = drawVerticalLine;
 module.exports.drawPoint = drawPoint;
 module.exports.drawYText = drawYText;
+module.exports.drawStackedBar = drawStackedBar;
 module.exports.drawBar = drawBar;

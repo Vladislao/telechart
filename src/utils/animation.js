@@ -42,7 +42,8 @@ const animate = (from, to, step, options) => {
       delay: 0,
       duration: 300,
       start: null,
-      easing: linear
+      easing: linear,
+      onFinish: null
     },
     options
   );
@@ -67,7 +68,12 @@ const animate = (from, to, step, options) => {
       ? 1
       : Math.min(Math.max(params.easing(elapsed / params.duration), 0), 1);
 
-    step(update(state, from, to, progress));
+    const delta = update(state, from, to, progress);
+    step(delta);
+
+    if (finished && options.onFinish) {
+      options.onFinish(delta);
+    }
 
     return finished === false;
   };

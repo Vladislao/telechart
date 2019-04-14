@@ -1,7 +1,7 @@
 const { resize } = require("../utils/transformation");
 const { drawTrack } = require("../rendering/scroll");
 const drawLine = require("../rendering/line");
-const { drawBar } = require("../rendering/grid");
+const { drawBar, drawStackedBar } = require("../rendering/grid");
 
 module.exports = state => {
   const canvas = document.createElement("canvas");
@@ -54,6 +54,13 @@ module.exports = state => {
 
         chart.scaleX = canvas.width / chart.range;
         chart.offsetX = 0;
+
+        if (state.stacked) {
+          cache.stack = {
+            first: true,
+            values: new Array(state.x.values.length)
+          };
+        }
       }
 
       // update chart colors
@@ -148,6 +155,10 @@ module.exports = state => {
         context.lineCap = "butt";
         context.lineWidth = chart.lineWidth;
 
+        if (cache.stack) {
+          cache.stack.first = true;
+        }
+
         if (state.y_scaled) {
           for (let i = 0; i < 2; i++) {
             const v = state.ids[i];
@@ -174,7 +185,22 @@ module.exports = state => {
 
             if (line.type === "bar") {
               context.fillStyle = line.color.hex;
-              drawBar(context, line.values, chart);
+              if (state.stacked) {
+                drawStackedBar(
+                  context,
+                  line.values,
+                  chart,
+                  null,
+                  null,
+                  state.y.matrix[2],
+                  state.y.sum,
+                  cache.stack,
+                  line.color.alpha
+                );
+                cache.stack.first = false;
+              } else {
+                drawBar(context, line.values, chart);
+              }
             } else {
               context.strokeStyle = line.color.hex;
               drawLine(context, line.values, chart);

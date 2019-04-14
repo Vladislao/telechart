@@ -85,14 +85,6 @@ module.exports = (state, options) => {
           context.measureText(cache.formatX(state.x.values[0], "short")).width
         );
 
-        if (state.y_scaled) {
-          text.ywidth = Math.ceil(
-            context.measureText(cache.formatY(state.y0.matrix[1][2], "short"))
-              .width
-          );
-        }
-
-        text.offsetX = -Math.floor(xTextWidth / 2);
         text.offsetY = fontSize + 2 * dpr;
         text.steps = Math.max(canvas.width / (xTextWidth * 2), 1);
         text.minstep = (state.window.minwidth - 1) / text.steps;
@@ -129,6 +121,13 @@ module.exports = (state, options) => {
         };
 
         chart.limit = { bottom: chart.lineWidth };
+
+        if (state.stacked) {
+          cache.stack = {
+            first: true,
+            values: new Array(state.x.values.length)
+          };
+        }
 
         // some props based on charts provided
         tooltip.lighten = {};
@@ -168,7 +167,7 @@ module.exports = (state, options) => {
         cache.mode |= MODE.CHART;
         previousState.tooltip.index = state.tooltip.index;
 
-        if (state.tooltip.index) {
+        if (state.tooltip.index !== null) {
           tooltip.indexD = chart.start + state.tooltip.indexD;
           tooltip.xD =
             chart.x + state.tooltip.indexD * chart.scaleX + chart.offsetX;

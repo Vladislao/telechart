@@ -17,16 +17,16 @@ const segmentTree = require("./segmentTree");
 
 //   return [bot, top - bot, top, step];
 // };
-const getValue = step => {
-  return Math.max(step, Math.ceil(step / 5) * 5) / 10;
-};
+
 const findScale = (min, max, count) => {
   const range = max - min;
   const roughStep = range / count;
   const stepPower = Math.pow(10, Math.floor(Math.log10(Math.abs(roughStep))));
-  const normalizedStep = roughStep / stepPower;
 
-  const preferedStep = getValue(normalizedStep * 10);
+  const normalizedStep = (roughStep / stepPower) * 10;
+  const preferedStep =
+    Math.max(normalizedStep, Math.ceil(normalizedStep / 5) * 5) / 10;
+
   const step = preferedStep * stepPower;
 
   const bot = min;
@@ -35,18 +35,32 @@ const findScale = (min, max, count) => {
   return [bot, top - bot, top, step];
 };
 
+const findSum = state => {
+  const length = state.x.values.length;
+  const result = new Array(length);
+
+  const idsCount = state.ids.length;
+
+  for (let i = 0; i < length; i++) {
+    let sum = 0;
+    for (let j = 0; j < idsCount; j++) {
+      const chart = state.charts[state.ids[j]];
+      if (chart.disabled) continue;
+      sum += chart.values[i];
+    }
+    result[i] = sum;
+  }
+
+  return result;
+};
+
 const findMinmax = (state, from, to) => {
   return state.ids.reduce(
     (acc, v) => {
       const chart = state.charts[v];
       if (chart.disabled) return acc;
 
-      const local = segmentTree.find(
-        chart.mmtree,
-        from,
-        to,
-        chart.values.length
-      );
+      const local = segmentTree.find(chart.mmtree, from, to);
 
       acc[0] = Math.min(acc[0], local[0]);
       acc[1] = Math.max(acc[1], local[1]);
@@ -56,21 +70,29 @@ const findMinmax = (state, from, to) => {
   );
 };
 
-const findScaledY = (chart, from, to, count) => {
-  const minmax = segmentTree.find(chart.mmtree, from, to, chart.values.length);
+const findScaledY = (mmtree, from, to, count) => {
+  const minmax = segmentTree.find(mmtree, from, to);
   return findScale(minmax[0], minmax[1], count);
 };
 
 const findMatrix = (state, from, to) => {
+  const linesCount = state.grid.lines;
+
   if (state.y_scaled && state.ids.length === 2) {
+    const first = state.charts[state.ids[0]];
+    const second = state.charts[state.ids[1]];
     return [
-      findScaledY(state.charts[state.ids[0]], from, to, state.grid.lines),
-      findScaledY(state.charts[state.ids[1]], from, to, state.grid.lines)
+      findScaledY(first.mmtree, from, to, linesCount),
+      findScaledY(second.mmtree, from, to, linesCount)
     ];
   }
 
+  if (state.stacked) {
+    return findScaledY(state.y.mmtree, from, to, linesCount);
+  }
+
   const minmax = findMinmax(state, from, to);
-  return findScale(minmax[0], minmax[1], state.grid.lines);
+  return findScale(minmax[0], minmax[1], linesCount);
 };
 
 const MONTH = [
@@ -136,9 +158,8 @@ const resize = canvas => {
 
 module.exports.formatDate = formatDate;
 module.exports.formatValue = formatValue;
-module.exports.findMinmax = findMinmax;
 module.exports.findMatrix = findMatrix;
+module.exports.findSum = findSum;
 module.exports.closest = closest;
 module.exports.bound = bound;
 module.exports.resize = resize;
-module.exports.findScale = findScale;

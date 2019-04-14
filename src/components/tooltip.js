@@ -1,5 +1,39 @@
 const { formatDate } = require("../utils/transformation");
 
+const createTotal = state => {
+  const wrapper = document.createElement("div");
+  wrapper.className = "tc-tooltip__value tc-tooltip__value--hidden";
+
+  const name = document.createElement("span");
+  const value = document.createElement("span");
+
+  wrapper.appendChild(name.appendChild(document.createTextNode("All")));
+  wrapper.appendChild(value);
+
+  const previousState = {};
+
+  return {
+    element: wrapper,
+    render: (force, index) => {
+      if (force || previousState.stacked !== state.stacked) {
+        previousState.stacked = state.stacked;
+        if (state.stacked) {
+          wrapper.classList.remove("tc-tooltip__value--hidden");
+        } else {
+          wrapper.classList.add("tc-tooltip__value--hidden");
+        }
+      }
+
+      if (state.stacked && (force || previousState.index !== index)) {
+        previousState.index = index;
+        if (index) {
+          value.textContent = state.y.sum[index];
+        }
+      }
+    }
+  };
+};
+
 const createValue = chart => {
   const element = document.createElement("div");
   element.className = "tc-tooltip__value";
@@ -10,12 +44,6 @@ const createValue = chart => {
 
   element.appendChild(name.appendChild(document.createTextNode(chart.name)));
   element.appendChild(value);
-
-  // element.addEventListener("mouseover", e => {
-  //   e.stopPropagation();
-  //   e.stopImmediatePropagation();
-  //   e.preventDefault();
-  // });
 
   const previousState = {};
 
@@ -58,6 +86,8 @@ module.exports = (state, options) => {
 
     return value;
   });
+  const total = createTotal(state);
+  wrapper.appendChild(total.element);
 
   element.appendChild(name);
   element.appendChild(wrapper);
@@ -72,13 +102,20 @@ module.exports = (state, options) => {
         cache.formatX = (options && options.formatX) || formatDate;
       }
 
+      const visible = state.tooltip.indexD != null;
+      if (force || cache.visible !== visible) {
+        cache.visible = visible;
+        if (visible) {
+          element.classList.remove("tc-tooltip--hidden");
+        } else {
+          element.classList.add("tc-tooltip--hidden");
+        }
+      }
+
       if (force || previousState.tooltip.indexD !== state.tooltip.indexD) {
         previousState.tooltip.indexD = state.tooltip.indexD;
 
-        if (state.tooltip.index === null) {
-          element.classList.add("tc-tooltip--hidden");
-        } else {
-          element.classList.remove("tc-tooltip--hidden");
+        if (visible) {
           element.style.transform = `translateX(${state.tooltip.indexX +
             10}px)`;
 
@@ -89,7 +126,9 @@ module.exports = (state, options) => {
 
           const index = offset + state.tooltip.indexD;
           name.textContent = cache.formatX(state.x.values[index], "full");
+
           values.forEach(v => v.render(force, index));
+          total.render(force, index);
         }
       }
     },

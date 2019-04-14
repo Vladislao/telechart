@@ -36,6 +36,8 @@ module.exports = (state, context, cache, modes) => {
     context.font = text.font;
     context.fillStyle = state.axis.color.hex;
     context.globalAlpha = alpha;
+    context.textBaseline = "top";
+    context.textAlign = "center";
 
     for (let i = -text.padding; i < text.last; i += text.doublestep) {
       if (i < text.start) continue;
@@ -44,8 +46,8 @@ module.exports = (state, context, cache, modes) => {
 
       context.fillText(
         cache.formatX(state.x.values[i], "short"),
-        shift * chart.scaleX + chart.offsetX + text.offsetX,
-        text.y + text.offsetY
+        shift * chart.scaleX + chart.offsetX,
+        text.y
       );
     }
 
@@ -61,8 +63,8 @@ module.exports = (state, context, cache, modes) => {
 
       context.fillText(
         cache.formatX(state.x.values[i], "short"),
-        shift * chart.scaleX + chart.offsetX + text.offsetX,
-        text.y + text.offsetY
+        shift * chart.scaleX + chart.offsetX,
+        text.y
       );
     }
   }

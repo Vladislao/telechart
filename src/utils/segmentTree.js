@@ -88,11 +88,11 @@ const create = data => {
   const treeLength = getSegmentTreeLength(dataLength);
   const tree = new Array(treeLength).fill(null);
 
-  return createRecursively(tree, data, 0, dataLength - 1, 0);
+  return [createRecursively(tree, data, 0, dataLength - 1, 0), data.length];
 };
 
-const find = (tree, findLeft, findRight, dataLength) => {
-  return findRecursively(tree, findLeft, findRight, 0, dataLength - 1, 0);
+const find = (tree, findLeft, findRight) => {
+  return findRecursively(tree[0], findLeft, findRight, 0, tree[1] - 1, 0);
 };
 
 module.exports.fallback = FALLBACK;

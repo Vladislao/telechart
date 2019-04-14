@@ -111,8 +111,11 @@ module.exports = (state, context, cache, modes) => {
 
       chart.scaleY = chart[`scaleY${i}`];
       chart.offsetY = chart[`offsetY${i}`];
-      const x = i === 0 ? 0 : chart.width - text.ywidth;
-      // TODO: pass formated values
+
+      const x = i === 0 ? 0 : chart.width;
+      context.textAlign = i === 0 ? "start" : "end";
+      context.textBaseline = "bottom";
+
       drawYText(context, state.y0.matrix[i], x, chart, cache.formatY);
     }
   }

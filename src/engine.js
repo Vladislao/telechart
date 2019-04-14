@@ -81,18 +81,18 @@ module.exports = () => {
 
         // TODO: very ugly, rethink
         const finished = [];
-        let count = 0;
+        // let count = 0;
         draw.forEach(v =>
           v.forEach(component => {
             if (finished.some(c => c === component)) return;
             finished.push(component);
             component(force);
-            count += 1;
+            // count += 1;
           })
         );
-        console.log(
-          `rendering took ${performance.now() - ms}ms, ${count} repaints`
-        );
+        // console.log(
+        //   `rendering took ${performance.now() - ms}ms, ${count} repaints`
+        // );
         // request next frame if we have more animations to render
         if (engine.animations.length) {
           window.requestAnimationFrame(engine.render);
