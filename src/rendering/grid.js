@@ -1,7 +1,8 @@
-const drawHorizontalLines = (context, matrix, position) => {
+const drawHorizontalLines = (context, count, position) => {
   context.beginPath();
-  for (let i = matrix[0]; i <= matrix[2]; i += matrix[3]) {
-    const y = position.y + i * position.scaleY + position.offsetY;
+  const dy = -position.height / count;
+  for (let i = 0; i < count; i += 1) {
+    const y = position.y + i * dy + position.height;
     context.moveTo(position.x, y);
     context.lineTo(position.width, y);
   }
@@ -44,30 +45,51 @@ const drawPoint = (context, x, y, radius) => {
   context.globalCompositeOperation = previous;
 };
 
-const drawBar = (context, values, position) => {
+const drawBar = (context, values, position, highlight, lighten) => {
   const last = position.range + 1;
-  console.log(position);
+  const fillStyle = context.fillStyle;
+
+  if (highlight) {
+    context.fillStyle = lighten;
+  }
+
   for (let i = 0; i <= last; i += 1) {
-    const y =
-      position.y +
-      values[position.start + i] * position.scaleY +
-      position.offsetY;
+    const index = position.start + i;
+    if (index === highlight) continue;
+
+    const y = position.y + values[index] * position.scaleY + position.offsetY;
     const height = position.height - y + position.y;
 
     if (height < 1) continue;
 
     context.fillRect(
-      position.x + i * position.scaleX + position.offsetX - position.scaleX / 2,
+      position.x +
+        i * position.scaleX +
+        position.offsetX -
+        position.scaleX / 2 -
+        0.5,
       y,
       position.scaleX + 1,
       height
     );
-    // context.lineTo(
-    //   position.x + i * position.scaleX + position.offsetX,
-    //   position.y +
-    //     values[position.start + i] * position.scaleY +
-    //     position.offsetY
-    // );
+  }
+
+  if (highlight) {
+    const y =
+      position.y + values[highlight] * position.scaleY + position.offsetY;
+    const height = position.height - y + position.y;
+
+    context.fillStyle = fillStyle;
+
+    context.fillRect(
+      position.x +
+        (highlight - position.start) * position.scaleX +
+        position.offsetX -
+        position.scaleX / 2,
+      y,
+      position.scaleX,
+      height
+    );
   }
 };
 

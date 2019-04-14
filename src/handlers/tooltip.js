@@ -7,9 +7,14 @@ module.exports = (state, engine, render) => v => {
   const handleStart = (offsetX, width) => {
     if (event) return;
 
+    const windowWidth =
+      state.window.widthD === undefined
+        ? state.window.width | 0
+        : state.window.widthD;
+
     event = {
       offsetX,
-      step: state.window.width / width,
+      step: windowWidth / width,
       done: false
     };
 

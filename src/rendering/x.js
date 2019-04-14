@@ -5,16 +5,15 @@ module.exports = (state, context, cache, modes) => {
     cache.mode |= modes.TEXT;
 
     const steps = chart.range / text.steps;
-    const magnitude = steps / text.minstep;
-    const magnitudeI = Math.floor(magnitude);
-    const primary = magnitudeI % 2;
+    const power = Math.log2(steps / text.minstep);
 
-    text.fraction = magnitude - magnitudeI;
-    if (text.magnitudeI !== magnitudeI || text.primary !== primary) {
-      text.magnitudeI = magnitudeI;
-      text.primary = primary;
+    const powerI = power | 0;
+    text.fraction = power % 1;
 
-      text.step = Math.max(magnitudeI - primary, 1) * Math.ceil(text.minstep);
+    if (text.power !== powerI) {
+      text.power = powerI | 0;
+
+      text.step = 2 ** Math.floor(text.power) * Math.ceil(text.minstep);
       text.doublestep = Math.ceil(text.step * 2);
     }
 
@@ -50,7 +49,7 @@ module.exports = (state, context, cache, modes) => {
       );
     }
 
-    context.globalAlpha = text.primary ? alpha - text.fraction : alpha;
+    context.globalAlpha = alpha - text.fraction;
 
     for (
       let i = text.step - text.padding;

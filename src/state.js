@@ -33,12 +33,24 @@ const create = data => {
   const windowWidth = closest(x.length, 0.3);
 
   const globalYMinmax = findMatrix(
-    { ids, charts, y_scaled: data.y_scaled, grid: { lines: 6 } },
+    {
+      ids,
+      charts,
+      y_scaled: data.y_scaled,
+      stacked: data.stacked,
+      grid: { lines: 5 }
+    },
     0,
     x.length
   );
   const windowYMatrix = findMatrix(
-    { ids, charts, y_scaled: data.y_scaled, grid: { lines: 6 } },
+    {
+      ids,
+      charts,
+      y_scaled: data.y_scaled,
+      stacked: data.stacked,
+      grid: { lines: 5 }
+    },
     windowOffset,
     windowOffset + windowWidth
   );
@@ -65,7 +77,7 @@ const create = data => {
     window: {
       offset: windowOffset,
       width: windowWidth,
-      minwidth: closest(x.length, 0.2),
+      minwidth: closest(x.length, 0.05),
       tracker: {
         width: 10,
         stroke: {
@@ -94,7 +106,7 @@ const create = data => {
       index: null
     },
     grid: {
-      lines: 6,
+      lines: 5,
       lineWidth: 1,
       color: {
         hex: "#182D3B",

@@ -1,35 +1,39 @@
 const segmentTree = require("./segmentTree");
 
-const PREFERED_STEPS = [1, 1.5, 2, 2.5, 5, 7.5, 10];
-
-const findScale = (min, max, count) => {
-  const range = max - min;
-
-  const roughStep = range / (count - 1);
-  const stepPower = Math.pow(10, -Math.floor(Math.log10(Math.abs(roughStep))));
-  const normalizedStep = roughStep * stepPower;
-
-  const preferedStep = PREFERED_STEPS.find(v => v >= normalizedStep);
-  const step = Math.round(preferedStep / stepPower);
-
-  const bot = Math.floor(min / step) * step;
-  const top = Math.ceil(max / step) * step;
-
-  return [bot, top - bot, top, step];
-};
+// const PREFERED_STEPS = [1, 1.5, 2, 2.5, 5, 7.5, 10];
 
 // const findScale = (min, max, count) => {
 //   const range = max - min;
 
 //   const roughStep = range / (count - 1);
-//   const stepPower = Math.pow(10, Math.floor(Math.log10(Math.abs(roughStep))));
-//   const step = (Math.ceil(roughStep / stepPower) + 0.5) * stepPower;
+//   const stepPower = Math.pow(10, -Math.floor(Math.log10(Math.abs(roughStep))));
+//   const normalizedStep = roughStep * stepPower;
 
-//   const bot = step * Math.floor(min / step);
-//   const top = step * Math.ceil(max / step);
+//   const preferedStep = PREFERED_STEPS.find(v => v >= normalizedStep);
+//   const step = Math.round(preferedStep / stepPower);
+
+//   const bot = Math.floor(min / step) * step;
+//   const top = Math.ceil(max / step) * step;
 
 //   return [bot, top - bot, top, step];
 // };
+const getValue = step => {
+  return Math.max(step, Math.ceil(step / 5) * 5) / 10;
+};
+const findScale = (min, max, count) => {
+  const range = max - min;
+  const roughStep = range / count;
+  const stepPower = Math.pow(10, Math.floor(Math.log10(Math.abs(roughStep))));
+  const normalizedStep = roughStep / stepPower;
+
+  const preferedStep = getValue(normalizedStep * 10);
+  const step = preferedStep * stepPower;
+
+  const bot = min;
+  const top = bot + step * count;
+
+  return [bot, top - bot, top, step];
+};
 
 const findMinmax = (state, from, to) => {
   return state.ids.reduce(

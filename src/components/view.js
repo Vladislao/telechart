@@ -4,6 +4,18 @@ const handleXValues = require("../rendering/x");
 const handleLineChart = require("../rendering/y");
 const handleScaledLineChart = require("../rendering/y_scaled");
 
+const lighten = color => {
+  const r = parseInt(color.substring(1, 3), 16);
+  const g = parseInt(color.substring(3, 5), 16);
+  const b = parseInt(color.substring(5, 7), 16);
+
+  const lr = (r + (255 - r) / 3) | 0;
+  const lg = (g + (255 - g) / 3) | 0;
+  const lb = (b + (255 - b) / 3) | 0;
+
+  return `#${lr.toString(16)}${lg.toString(16)}${lb.toString(16)}`;
+};
+
 const MODE = {
   NONE: 0,
   FORCE: 1,
@@ -80,7 +92,7 @@ module.exports = (state, options) => {
           );
         }
 
-        text.offsetX = Math.floor(xTextWidth / 2);
+        text.offsetX = -Math.floor(xTextWidth / 2);
         text.offsetY = fontSize + 2 * dpr;
         text.steps = Math.max(canvas.width / (xTextWidth * 2), 1);
         text.minstep = (state.window.minwidth - 1) / text.steps;
@@ -117,6 +129,16 @@ module.exports = (state, options) => {
         };
 
         chart.limit = { bottom: chart.lineWidth };
+
+        // some props based on charts provided
+        tooltip.lighten = {};
+        chart.bar = false;
+        for (let i = 0; i < state.ids.length; i++) {
+          const id = state.ids[i];
+          const line = state.charts[id];
+          tooltip.lighten[id] = lighten(line.color.hex);
+          chart.bar = chart.bar || line.type === "bar";
+        }
       }
 
       // Update x bounds
@@ -153,6 +175,8 @@ module.exports = (state, options) => {
           tooltip.x =
             chart.x + state.tooltip.index * chart.scaleX + chart.offsetX;
         } else {
+          tooltip.xD = null;
+          tooltip.indexD = null;
           tooltip.x = null;
         }
       }

@@ -1,6 +1,7 @@
 const { resize } = require("../utils/transformation");
 const { drawTrack } = require("../rendering/scroll");
 const drawLine = require("../rendering/line");
+const { drawBar } = require("../rendering/grid");
 
 module.exports = state => {
   const canvas = document.createElement("canvas");
@@ -171,7 +172,13 @@ module.exports = state => {
             context.globalAlpha = line.color.alpha;
             context.strokeStyle = line.color.hex;
 
-            drawLine(context, line.values, chart);
+            if (line.type === "bar") {
+              context.fillStyle = line.color.hex;
+              drawBar(context, line.values, chart);
+            } else {
+              context.strokeStyle = line.color.hex;
+              drawLine(context, line.values, chart);
+            }
           }
         }
 

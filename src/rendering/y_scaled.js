@@ -70,7 +70,9 @@ module.exports = (state, context, cache, modes) => {
     context.globalAlpha = state.grid.color.alpha;
     context.strokeStyle = state.grid.color.hex;
 
-    drawHorizontalLines(context, state.y0.matrix[1], chart);
+    // chart.scaleY = chart.scaleY0;
+    // chart.offsetY = chart.offsetY0;
+    drawHorizontalLines(context, state.grid.lines, chart);
 
     if (tooltip.x !== null) {
       context.lineWidth = tooltip.lineWidth;

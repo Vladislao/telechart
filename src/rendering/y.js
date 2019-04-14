@@ -50,9 +50,13 @@ module.exports = (state, context, cache, modes) => {
 
       if (line.type === "bar") {
         context.fillStyle = line.color.hex;
-        drawBar(context, line.values, chart);
-        // context.strokeStyle = "red";
-        // drawLine(context, line.values, chart);
+        drawBar(
+          context,
+          line.values,
+          chart,
+          tooltip.indexD,
+          tooltip.lighten[v]
+        );
       } else {
         context.strokeStyle = line.color.hex;
         drawLine(context, line.values, chart);
@@ -63,9 +67,9 @@ module.exports = (state, context, cache, modes) => {
     context.globalAlpha = state.grid.color.alpha;
     context.strokeStyle = state.grid.color.hex;
 
-    drawHorizontalLines(context, state.y0.matrix, chart);
+    drawHorizontalLines(context, state.grid.lines, chart);
 
-    if (tooltip.x !== null) {
+    if (tooltip.x !== null && !chart.bar) {
       context.lineWidth = tooltip.lineWidth;
       context.globalAlpha = state.tooltip.color.alpha;
       context.strokeStyle = state.tooltip.color.hex;
