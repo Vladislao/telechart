@@ -23,7 +23,7 @@ module.exports = (state, context, cache, modes) => {
     text.last = Math.min(chart.start + chart.range + 1, state.x.values.length);
   }
 
-  if (cache.mode & modes.TEXT) {
+  if (cache.mode & (modes.TEXT | modes.FORCE)) {
     context.clearRect(
       text.region.x,
       text.region.y,

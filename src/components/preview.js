@@ -1,7 +1,7 @@
 const { resize } = require("../utils/transformation");
 const { drawTrack } = require("../rendering/scroll");
-const drawLine = require("../rendering/line");
-const { drawBar, drawStackedBar } = require("../rendering/grid");
+
+const { drawLine, drawBar, drawArea } = require("../rendering/grid");
 
 module.exports = state => {
   const canvas = document.createElement("canvas");
@@ -14,6 +14,7 @@ module.exports = state => {
   const previousState = { charts: {}, y: {}, window: {} };
 
   const cache = {
+    tooltip: {},
     chart,
     track,
     state: previousState
@@ -24,10 +25,19 @@ module.exports = state => {
     render: force => {
       let shouldDraw = force;
 
+      cache.sum = state.y.sum;
+      cache.matrix = state.y.matrix;
+
       if (force) {
         resize(canvas);
 
         const dpr = window.devicePixelRatio;
+
+        cache.stacked = state.stacked;
+        cache.percentage = state.percentage;
+        if (state.stacked) {
+          cache.stack = new Array(state.x.values.length);
+        }
 
         // track
         track.padding = 1 * dpr;
@@ -55,12 +65,7 @@ module.exports = state => {
         chart.scaleX = canvas.width / chart.range;
         chart.offsetX = 0;
 
-        if (state.stacked) {
-          cache.stack = {
-            first: true,
-            values: new Array(state.x.values.length)
-          };
-        }
+        chart.limit = {};
       }
 
       // update chart colors
@@ -151,61 +156,39 @@ module.exports = state => {
       if (shouldDraw) {
         context.clearRect(0, 0, canvas.width, canvas.height);
 
+        cache.first = true;
+
         context.lineJoin = "bevel";
         context.lineCap = "butt";
         context.lineWidth = chart.lineWidth;
 
-        if (cache.stack) {
-          cache.stack.first = true;
-        }
+        for (let i = 0; i < state.ids.length; i++) {
+          const v = state.ids[i];
+          const line = state.charts[v];
 
-        if (state.y_scaled) {
-          for (let i = 0; i < 2; i++) {
-            const v = state.ids[i];
-            const line = state.charts[v];
+          if (line.color.alpha === 0) continue;
+          if (state.y_scaled && i > 1) continue;
 
-            if (line.color.alpha === 0) continue;
-
-            context.globalAlpha = line.color.alpha;
-            context.strokeStyle = line.color.hex;
-
+          if (state.y_scaled) {
             chart.scaleY = chart[`scaleY${i}`];
             chart.offsetY = chart[`offsetY${i}`];
-            drawLine(context, line.values, chart);
           }
-        } else {
-          for (let i = 0; i < state.ids.length; i++) {
-            const v = state.ids[i];
-            const line = state.charts[v];
 
-            if (line.color.alpha === 0) continue;
+          context.globalAlpha = line.color.alpha;
+          context.strokeStyle = line.color.hex;
+          context.fillStyle = line.color.hex;
 
-            context.globalAlpha = line.color.alpha;
-            context.strokeStyle = line.color.hex;
-
-            if (line.type === "bar") {
-              context.fillStyle = line.color.hex;
-              if (state.stacked) {
-                drawStackedBar(
-                  context,
-                  line.values,
-                  chart,
-                  null,
-                  null,
-                  state.y.matrix[2],
-                  state.y.sum,
-                  cache.stack,
-                  line.color.alpha
-                );
-                cache.stack.first = false;
-              } else {
-                drawBar(context, line.values, chart);
-              }
-            } else {
-              context.strokeStyle = line.color.hex;
-              drawLine(context, line.values, chart);
-            }
+          if (line.type === "line") {
+            drawLine(context, line.values, chart, line.type === "line", cache);
           }
+          if (line.type === "bar") {
+            drawBar(context, line.values, chart, cache);
+          }
+          if (line.type === "area") {
+            drawArea(context, line.values, chart, cache);
+          }
+
+          cache.first = false;
         }
 
         context.globalAlpha = state.window.mask.color.alpha;

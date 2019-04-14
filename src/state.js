@@ -35,6 +35,7 @@ const create = data => {
     charts,
     y_scaled: !!data.y_scaled,
     stacked: !!data.stacked,
+    percentage: !!data.percentage,
     x: {
       values: x,
       matrix: [0, x.length - 1]
@@ -96,7 +97,9 @@ const create = data => {
     }
   };
 
-  if (data.stacked) {
+  if (data.percentage) {
+    state.y.sum = findSum(state);
+  } else if (data.stacked) {
     state.y.sum = findSum(state);
     state.y.mmtree = segmentTree.create(state.y.sum);
   } else {

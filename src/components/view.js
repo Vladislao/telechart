@@ -2,7 +2,6 @@ const { resize, formatDate, formatValue } = require("../utils/transformation");
 
 const handleXValues = require("../rendering/x");
 const handleLineChart = require("../rendering/y");
-const handleScaledLineChart = require("../rendering/y_scaled");
 
 const lighten = color => {
   const r = parseInt(color.substring(1, 3), 16);
@@ -60,6 +59,9 @@ module.exports = (state, options) => {
     render: force => {
       cache.mode = MODE.NONE;
 
+      cache.sum = state.y.sum;
+      cache.matrix = state.y0.matrix;
+
       if (force) {
         cache.mode |= MODE.FORCE;
         resize(canvas);
@@ -70,6 +72,14 @@ module.exports = (state, options) => {
         cache.formatX = (options && options.formatX) || formatDate;
         cache.formatY = (options && options.formatY) || formatValue;
 
+        cache.stacked = state.stacked;
+        cache.percentage = state.percentage;
+
+        // cache for stacked values to avoid GC
+        if (state.stacked) {
+          cache.stack = new Array(state.x.values.length);
+        }
+
         // text
         const fontSize = (state.axis.size || 10) * dpr;
         text.font = `${fontSize}px ${state.axis.font}`;
@@ -78,14 +88,13 @@ module.exports = (state, options) => {
         text.width = canvas.width;
 
         text.x = 0;
-        text.y = canvas.height - text.height;
+        text.y = canvas.height - text.height + 2 * dpr;
 
         context.font = text.font;
         const xTextWidth = Math.ceil(
           context.measureText(cache.formatX(state.x.values[0], "short")).width
         );
 
-        text.offsetY = fontSize + 2 * dpr;
         text.steps = Math.max(canvas.width / (xTextWidth * 2), 1);
         text.minstep = (state.window.minwidth - 1) / text.steps;
         text.padding = Math.floor(text.minstep / 2);
@@ -108,10 +117,10 @@ module.exports = (state, options) => {
         chart.lineWidth = state.y0.lineWidth * dpr;
 
         chart.width = canvas.width;
-        chart.height = canvas.height - text.height - (tooltip.radius + 4) * 2;
+        chart.height = canvas.height - text.height - (tooltip.radius + 4);
 
         chart.x = 0;
-        chart.y = tooltip.radius + 2;
+        chart.y = 0;
 
         chart.region = {
           x: 0,
@@ -120,23 +129,16 @@ module.exports = (state, options) => {
           height: canvas.height - text.height
         };
 
-        chart.limit = { bottom: chart.lineWidth };
-
-        if (state.stacked) {
-          cache.stack = {
-            first: true,
-            values: new Array(state.x.values.length)
-          };
-        }
+        chart.limit = { bottom: chart.height };
 
         // some props based on charts provided
-        tooltip.lighten = {};
-        chart.bar = false;
+        cache.lighten = {};
+        cache.bar = false;
         for (let i = 0; i < state.ids.length; i++) {
           const id = state.ids[i];
           const line = state.charts[id];
-          tooltip.lighten[id] = lighten(line.color.hex);
-          chart.bar = chart.bar || line.type === "bar";
+          cache.lighten[id] = lighten(line.color.hex);
+          cache.bar = cache.bar || line.type === "bar";
         }
       }
 
@@ -197,11 +199,11 @@ module.exports = (state, options) => {
         }
       }
 
-      if (state.y_scaled) {
-        handleScaledLineChart(state, context, cache, MODE);
-      } else {
-        handleLineChart(state, context, cache, MODE);
-      }
+      // if (state.y_scaled) {
+      //   handleScaledLineChart(state, context, cache, MODE);
+      // } else {
+      handleLineChart(state, context, cache, MODE);
+      // }
 
       handleXValues(state, context, cache, MODE);
     }

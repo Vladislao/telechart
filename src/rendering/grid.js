@@ -24,7 +24,7 @@ const drawYText = (context, matrix, x, position, format) => {
 const drawVerticalLine = (context, x, position) => {
   context.beginPath();
   context.moveTo(x, position.region.y);
-  context.lineTo(x, position.region.height);
+  context.lineTo(x, position.height);
   context.stroke();
 };
 
@@ -42,129 +42,190 @@ const drawPoint = (context, x, y, radius) => {
   context.globalCompositeOperation = previous;
 };
 
-const drawStackedBar = (
-  context,
-  values,
-  position,
-  highlight,
-  lighten,
-  max,
-  sum,
-  stack,
-  alpha
-) => {
-  const last = position.range + 1;
-  const fillStyle = context.fillStyle;
+const yPercentage = (result, index, value, alpha, position, options) => {
+  const total = options.sum[index];
+  const height = position.height * (value / total) * alpha;
 
-  if (highlight !== null) {
-    context.fillStyle = lighten;
+  let y = position.y + position.height - height;
+
+  if (options.stacked) {
+    const inc = options.first ? 0 : options.stack[index];
+    y -= inc;
+    options.stack[index] = inc + height;
   }
 
-  for (let i = 0; i <= last; i += 1) {
-    const index = position.start + i;
-    if (index === highlight) continue;
-
-    const total = sum[index];
-    const ntotal = total / max;
-    const inc = stack.first ? 0 : stack.values[index];
-
-    const y0 = position.y + position.height * (1 - ntotal);
-    const height0 = position.height * ntotal;
-
-    const y = y0 + inc;
-    const height = height0 * (values[index] / total) * alpha;
-
-    // if (height < 1) continue;
-
-    context.fillRect(
-      position.x +
-        i * position.scaleX +
-        position.offsetX -
-        position.scaleX / 2 -
-        0.5,
-      y,
-      position.scaleX + 1,
-      height
-    );
-
-    stack.values[index] = inc + height;
-  }
-
-  if (highlight !== null) {
-    const total = sum[highlight];
-    const ntotal = total / max;
-    const inc = stack.first ? 0 : stack.values[highlight];
-
-    const y0 = position.y + position.height * (1 - ntotal);
-    const height0 = position.height * ntotal;
-
-    const y = y0 + inc;
-    const height = height0 * (values[highlight] / total) * alpha;
-
-    // if (height < 1) return;
-
-    context.fillStyle = fillStyle;
-
-    context.fillRect(
-      position.x +
-        (highlight - position.start) * position.scaleX +
-        position.offsetX -
-        position.scaleX / 2,
-      y,
-      position.scaleX,
-      height
-    );
-
-    stack.values[highlight] = inc + height;
-  }
+  result[0] = y;
+  result[1] = height;
+  // return result;
 };
 
-const drawBar = (context, values, position, highlight, lighten) => {
-  const last = position.range + 1;
-  const fillStyle = context.fillStyle;
+const yStacked = (result, index, value, alpha, position, options) => {
+  // TODO: improve
 
-  if (highlight !== null) {
-    context.fillStyle = lighten;
+  const total = options.sum[index];
+  const ntotal = total / options.matrix[2];
+  const inc = options.first ? 0 : options.stack[index];
+
+  const y0 = position.y + position.height * (1 - ntotal);
+  const height0 = position.height * ntotal;
+
+  const y = y0 + inc;
+
+  const height = height0 * (value / total) * alpha;
+  options.stack[index] = inc + height;
+
+  result[0] = y;
+  result[1] = height;
+  // return result;
+};
+
+const yBasic = (result, value, position) => {
+  const y = position.y + value * position.scaleY + position.offsetY;
+  const height = position.height - y + position.y;
+
+  result[0] = y;
+  result[1] = height;
+  // return result;
+};
+
+const drawArea = (context, values, position, options) => {
+  // if (options.percentage && options.stacked) {
+  //   context.fillRect(position.x, position.y, position.width, position.height);
+  //   return;
+  // }
+
+  const alpha = context.globalAlpha;
+  // to avoid GC, probably unnecessary
+  const y = new Array(2);
+
+  context.beginPath();
+
+  const last = position.range + 1;
+
+  if (!options.first && options.stacked) {
+    for (let i = last; i >= 0; i--) {
+      const index = position.start + i;
+
+      const xb = position.x + i * position.scaleX + position.offsetX;
+      const yb = position.y + position.height - options.stack[index];
+
+      context.lineTo(xb, yb);
+    }
   }
 
   for (let i = 0; i <= last; i += 1) {
     const index = position.start + i;
-    if (index === highlight) continue;
 
-    const y = position.y + values[index] * position.scaleY + position.offsetY;
-    const height = position.height - y + position.y;
+    const x = position.x + i * position.scaleX + position.offsetX;
 
-    if (height < 1) continue;
+    if (options.percentage) {
+      yPercentage(y, index, values[index], alpha, position, options);
+    } else if (options.stacked) {
+      yStacked(y, index, values[index], alpha, position, options);
+    } else {
+      yBasic(y, values[index], position);
+    }
 
-    context.fillRect(
-      position.x +
-        i * position.scaleX +
-        position.offsetX -
-        position.scaleX / 2 -
-        0.5,
-      y,
-      position.scaleX + 1,
-      height
-    );
+    if (position.limit.bottom) {
+      const y0 = y[0];
+      y[0] = y0 < position.limit.bottom ? y0 : position.limit.bottom;
+    }
+
+    context.lineTo(x, y[0]);
   }
 
-  if (highlight !== null) {
-    const y =
-      position.y + values[highlight] * position.scaleY + position.offsetY;
-    const height = position.height - y + position.y;
+  if (options.first || !options.stacked) {
+    context.lineTo(position.width, position.height);
+    context.lineTo(position.x, position.height);
+  }
 
-    if (height < 1) return;
+  context.fill();
+};
+
+const drawLine = (context, values, position, stroke, options) => {
+  const alpha = context.globalAlpha;
+
+  context.beginPath();
+
+  const last = position.range + 1;
+
+  // to avoid GC, probably unnecessary
+  const y = new Array(2);
+
+  for (let i = 0; i <= last; i += 1) {
+    const index = position.start + i;
+
+    const x = position.x + i * position.scaleX + position.offsetX;
+
+    if (options.percentage) {
+      yPercentage(y, index, values[index], alpha, position, options);
+    } else if (options.stacked) {
+      yStacked(y, index, values[index], alpha, position, options);
+    } else {
+      yBasic(y, values[index], position);
+    }
+
+    if (position.limit.bottom) {
+      const y0 = y[0];
+      y[0] = y0 < position.limit.bottom ? y0 : position.limit.bottom;
+    }
+
+    context.lineTo(x, y[0]);
+  }
+
+  context.stroke();
+};
+
+const drawBar = (context, values, position, options, lighten) => {
+  const fillStyle = context.fillStyle;
+  const alpha = context.globalAlpha;
+
+  const highlight = options.tooltip.indexD;
+  if (highlight != null) {
+    context.fillStyle = lighten;
+  }
+
+  context.beginPath();
+
+  const last = position.range + 1;
+  const y = new Array(2);
+  for (let i = 0; i <= last; i += 1) {
+    const index = position.start + i;
+    if (index === highlight) continue;
+
+    const x =
+      position.x + i * position.scaleX + position.offsetX - position.scaleX / 2;
+    const width = position.scaleX;
+
+    if (options.percentage) {
+      yPercentage(y, index, values[index], alpha, position, options);
+    } else if (options.stacked) {
+      yStacked(y, index, values[index], alpha, position, options);
+    } else {
+      yBasic(y, values[index], position);
+    }
+
+    context.rect(x, y[0], width, y[1]);
+  }
+
+  context.fill();
+
+  if (highlight != null) {
+    const i = highlight - position.start;
+    const x =
+      position.x + i * position.scaleX + position.offsetX - position.scaleX / 2;
+    const width = position.scaleX;
+
+    if (options.percentage) {
+      yPercentage(y, highlight, values[highlight], alpha, position, options);
+    } else if (options.stacked) {
+      yStacked(y, highlight, values[highlight], alpha, position, options);
+    } else {
+      yBasic(y, values[highlight], position);
+    }
+
     context.fillStyle = fillStyle;
-
-    context.fillRect(
-      position.x +
-        (highlight - position.start) * position.scaleX +
-        position.offsetX -
-        position.scaleX / 2,
-      y,
-      position.scaleX,
-      height
-    );
+    context.fillRect(x, y[0], width, y[1]);
   }
 };
 
@@ -172,5 +233,7 @@ module.exports.drawHorizontalLines = drawHorizontalLines;
 module.exports.drawVerticalLine = drawVerticalLine;
 module.exports.drawPoint = drawPoint;
 module.exports.drawYText = drawYText;
-module.exports.drawStackedBar = drawStackedBar;
+
+module.exports.drawArea = drawArea;
+module.exports.drawLine = drawLine;
 module.exports.drawBar = drawBar;

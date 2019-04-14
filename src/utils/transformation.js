@@ -70,25 +70,34 @@ const findMinmax = (state, from, to) => {
   );
 };
 
-const findScaledY = (mmtree, from, to, count) => {
-  const minmax = segmentTree.find(mmtree, from, to);
-  return findScale(minmax[0], minmax[1], count);
-};
-
 const findMatrix = (state, from, to) => {
   const linesCount = state.grid.lines;
 
-  if (state.y_scaled && state.ids.length === 2) {
-    const first = state.charts[state.ids[0]];
-    const second = state.charts[state.ids[1]];
-    return [
-      findScaledY(first.mmtree, from, to, linesCount),
-      findScaledY(second.mmtree, from, to, linesCount)
-    ];
+  if (state.percentage) {
+    return findScale(0, 100, linesCount);
   }
 
   if (state.stacked) {
-    return findScaledY(state.y.mmtree, from, to, linesCount);
+    const minmax = segmentTree.find(state.y.mmtree, from, to);
+    return findScale(0, minmax[1], linesCount);
+  }
+
+  if (state.y_scaled) {
+    const minmax0 = segmentTree.find(
+      state.charts[state.ids[0]].mmtree,
+      from,
+      to
+    );
+    const scale0 = findScale(minmax0[0], minmax0[1], linesCount);
+
+    const minmax1 = segmentTree.find(
+      state.charts[state.ids[1]].mmtree,
+      from,
+      to
+    );
+    const scale1 = findScale(minmax1[0], minmax1[1], linesCount);
+
+    return [scale0, scale1];
   }
 
   const minmax = findMinmax(state, from, to);
