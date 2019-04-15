@@ -12,6 +12,7 @@ const createRange = require("./components/range");
 const createControlHandlers = require("./handlers/controls");
 const createTooltipHandler = require("./handlers/tooltip");
 const createPreviewHandler = require("./handlers/preview");
+const createZoomHandler = require("./handlers/zoom");
 
 const mountDefault = (element, components) => {
   element.className = "tc-wrapper";
@@ -33,6 +34,11 @@ module.exports = function telechart(data, options) {
    * TODO: Move to WebWorker to optimize page loading speed
    */
   const state = createState(data);
+
+  /*
+   * Initialize API
+   */
+  const api = {};
 
   /*
    * Create components used by chart
@@ -70,6 +76,7 @@ module.exports = function telechart(data, options) {
       range.render
     ])
   );
+  tooltip.register(createZoomHandler(api, state, engine, []));
 
   const components = {
     view,
@@ -86,38 +93,45 @@ module.exports = function telechart(data, options) {
     range: range.element
   };
 
-  const render = force => {
-    engine.registerAnimation({
-      force,
-      draw: [view.render, preview.render, range.render, tooltip.render]
-    });
+  const _r = [view.render, preview.render, range.render, tooltip.render];
+  const render = (force, immediately) => {
+    if (immediately) {
+      _r.forEach(v => v(force));
+    } else {
+      engine.registerAnimation({
+        force,
+        draw: _r
+      });
+    }
   };
 
-  // TODO: Destroy
   /*
    * API for chart
    */
-  const api = {
-    mount: func => {
-      if (typeof func === "function") {
-        func(elements);
-      } else {
-        mountDefault(func, elements);
-      }
 
-      // Render all components for the first time
-      render(true);
-
-      return api;
-    },
-    update: func => {
-      func(engine, state, components);
-      return api;
-    },
-    render: force => {
-      render(force);
-      return api;
+  api.mount = func => {
+    if (typeof func === "function") {
+      func(elements);
+    } else {
+      mountDefault(func, elements);
     }
+
+    // Render all components for the first time
+    render(true, false);
+
+    return api;
+  };
+  api.update = func => {
+    func(engine, state, components);
+    return api;
+  };
+  api.render = (force, immediately) => {
+    render(force, immediately);
+    return api;
+  };
+  api.onZoomIn = func => {
+    api.zoomIn = func;
+    return api;
   };
 
   return api;

@@ -1,4 +1,4 @@
-const { formatDate } = require("../utils/transformation");
+const { formatDate, bound } = require("../utils/transformation");
 
 const createTotal = state => {
   const wrapper = document.createElement("div");
@@ -104,6 +104,7 @@ module.exports = (state, options) => {
 
   return {
     element,
+    register: callback => callback({ id: "tooltip", element }),
     render: force => {
       if (force) {
         cache.formatX = (options && options.formatX) || formatDate;
@@ -131,8 +132,9 @@ module.exports = (state, options) => {
               ? state.window.offsetD
               : state.window.offset | 0;
 
-          const index = Math.min(
-            Math.max(offset + state.tooltip.indexD, 0),
+          const index = bound(
+            offset + state.tooltip.indexD,
+            0,
             state.x.values.length - 1
           );
           name.textContent = cache.formatX(state.x.values[index], "full");
@@ -141,7 +143,6 @@ module.exports = (state, options) => {
           total.render(force, index);
         }
       }
-    },
-    register: () => {}
+    }
   };
 };
