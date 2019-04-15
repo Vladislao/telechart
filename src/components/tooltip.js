@@ -110,7 +110,7 @@ module.exports = (state, options) => {
         cache.formatX = (options && options.formatX) || formatDate;
       }
 
-      const visible = state.tooltip.indexD != null;
+      const visible = state.tooltip.indexD || state.tooltip.indexD === 0;
       if (force || cache.visible !== visible) {
         cache.visible = visible;
         if (visible) {
