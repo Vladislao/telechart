@@ -101,6 +101,13 @@ const findMatrix = (state, from, to) => {
   }
 
   const minmax = findMinmax(state, from, to);
+  const barchart = state.ids.every(v => state.charts[v].type === "bar");
+  if (barchart) {
+    const p5 = minmax[0] - (minmax[1] - minmax[0]) * 0.05;
+    // preserve sign
+    if (Math.sign(minmax[0]) === Math.sign(minmax[1]))
+      return findScale(p5, minmax[1], linesCount);
+  }
   return findScale(minmax[0], minmax[1], linesCount);
 };
 

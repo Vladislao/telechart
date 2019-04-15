@@ -28,7 +28,6 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-bottom: 80px;
 }
 
 .demo h1 {
@@ -42,11 +41,24 @@ body {
   margin-bottom: 30px;
 }
 
+.demo footer {
+  display: flex;
+  justify-content: space-between;
+  width: 500px;
+
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+.demo a {
+  color: #3c9ede;
+}
+
 .switch {
   font-size: 18px;
   color: #3c9ede;
   cursor: pointer;
   user-select: none;
+  margin-bottom: 60px;
 }
 
 .night {

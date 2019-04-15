@@ -20,10 +20,7 @@ const createTooltipAnimation = (state, event, render) => {
         }
       }
 
-      const indexD = Math.min(
-        Math.max(Math.floor(event.offsetX * event.step), 0),
-        state.x.values.length
-      );
+      const indexD = Math.max(Math.floor(event.offsetX * event.step), 0);
 
       if (indexD !== previous) {
         const indexX = Math.round(indexD / event.step);

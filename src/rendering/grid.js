@@ -95,10 +95,8 @@ const drawArea = (context, values, position, options) => {
 
   context.beginPath();
 
-  const last = position.range + 1;
-
   if (!options.first && options.stacked) {
-    for (let i = last; i >= 0; i--) {
+    for (let i = position.range; i >= 0; i--) {
       const index = position.start + i;
 
       const xb = position.x + i * position.scaleX + position.offsetX;
@@ -108,7 +106,7 @@ const drawArea = (context, values, position, options) => {
     }
   }
 
-  for (let i = 0; i <= last; i += 1) {
+  for (let i = 0; i <= position.range; i += 1) {
     const index = position.start + i;
 
     const x = position.x + i * position.scaleX + position.offsetX;
@@ -130,8 +128,8 @@ const drawArea = (context, values, position, options) => {
   }
 
   if (options.first || !options.stacked) {
-    context.lineTo(position.width, position.height);
-    context.lineTo(position.x, position.height);
+    context.lineTo(position.width, position.y + position.height);
+    context.lineTo(position.x, position.y + position.height);
   }
 
   context.fill();

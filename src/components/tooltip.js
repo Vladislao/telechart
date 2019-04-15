@@ -62,7 +62,7 @@ const createValue = chart => {
 
       if (force || previousState.index !== index) {
         previousState.index = index;
-        if (index) {
+        if (index != null) {
           value.textContent = chart.values[index];
         }
       }
@@ -74,8 +74,15 @@ module.exports = (state, options) => {
   const element = document.createElement("div");
   element.className = "tc-tooltip tc-tooltip--hidden";
 
+  const nameWrapper = document.createElement("div");
+  nameWrapper.className = "tc-tooltip__value";
   const name = document.createElement("div");
   name.className = "tc-tooltip__name";
+  const arrow = document.createElement("div");
+  arrow.className = "tc-tooltip__arrow";
+
+  nameWrapper.appendChild(name);
+  nameWrapper.appendChild(arrow);
 
   const wrapper = document.createElement("div");
   wrapper.className = "tc-tooltip__wrapper";
@@ -89,7 +96,7 @@ module.exports = (state, options) => {
   const total = createTotal(state);
   wrapper.appendChild(total.element);
 
-  element.appendChild(name);
+  element.appendChild(nameWrapper);
   element.appendChild(wrapper);
 
   const previousState = { tooltip: {} };
@@ -116,15 +123,18 @@ module.exports = (state, options) => {
         previousState.tooltip.indexD = state.tooltip.indexD;
 
         if (visible) {
-          element.style.transform = `translateX(${state.tooltip.indexX +
-            10}px)`;
+          element.style.transform = `translateX(${state.tooltip.indexX -
+            20}px)`;
 
           const offset =
-            state.window.offsetD === undefined
-              ? Math.trunc(state.window.offset)
-              : state.window.offsetD;
+            state.window.offsetD != null
+              ? state.window.offsetD
+              : Math.trunc(state.window.offset);
 
-          const index = offset + state.tooltip.indexD;
+          const index = Math.min(
+            Math.max(offset + state.tooltip.indexD, 0),
+            state.x.values.length - 1
+          );
           name.textContent = cache.formatX(state.x.values[index], "full");
 
           values.forEach(v => v.render(force, index));

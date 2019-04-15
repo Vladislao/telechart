@@ -24,94 +24,99 @@
       <div id="chart4" class="chart"></div>
       <div id="chart5" class="chart"></div>
       <div class="switch">Switch to Night Mode</div>
+      <footer>
+        <div>By <a href="https://github.com/vladislao">Vladislav Stroev</a></div>
+        <a href="https://github.com/vladislao/telechart">sources</a>
+      </footer>
     </div>
 
     <script src="/telechart.polyfill.js" type="text/javascript"></script>
     <script src="/telechart.js" type="text/javascript"></script>
     <script>
       // Cross-browser DOM ready
-      window.ready = function(a, b, c) {
+      var ready = function(a, b, c) {
         (b = document), (c = "addEventListener");
         b[c] ? b[c]("DOMContentLoaded", a) : window.attachEvent("onload", a);
       };
-    </script>
-    <script>
-      // Toggles between night/day mode
-      window.ready(function() {
-        var day = true;
-        var demo = document.getElementsByClassName("demo")[0];
-        var switcher = document.getElementsByClassName("switch")[0];
 
-        switcher.addEventListener("click", function switchHandler(e) {
-          day = !day;
-
-          if (day) {
-            switcher.textContent = "Switch to Night Mode";
-            demo.classList.remove("night");
-          } else {
-            switcher.textContent = "Switch to Day Mode";
-            demo.classList.add("night");
-          }
-        });
-      });
-    </script>
-    <script>
-      window.ready(function() {
+      ready(function() {
         // Chart initialization
-        const fetchData = path =>
+        var fetchData = path =>
           fetch(`/data/${path}`).then(function(response) {
             return response.json();
           });
 
-        const customMount = (target, name) => components => {
-          // Compose your DOM tree as you like
-          target.classList.add("tc-wrapper");
+        var customMount = function(target, name) {
+          return function (components) {
+            // Compose your DOM tree as you like
+            target.classList.add("tc-wrapper");
 
-          const headerWrapper = document.createElement("div");
-          headerWrapper.className = "chart__header";
+            var headerWrapper = document.createElement("div");
+            headerWrapper.className = "chart__header";
 
-          const header = document.createElement("h3");
-          header.appendChild(document.createTextNode(name));
-          headerWrapper.appendChild(header);
-          headerWrapper.appendChild(components.range);
+            var header = document.createElement("h3");
+            header.appendChild(document.createTextNode(name));
+            headerWrapper.appendChild(header);
+            headerWrapper.appendChild(components.range);
 
-          target.appendChild(headerWrapper);
-          target.appendChild(components.view);
-          target.appendChild(components.preview);
-          if (components.controls) target.appendChild(components.controls);
+            target.appendChild(headerWrapper);
+            target.appendChild(components.view);
+            target.appendChild(components.preview);
+            if (components.controls) target.appendChild(components.controls);
+          }
         };
 
-        const charts = [];
+        var charts = [];
         fetchData("1/overview.json").then(function(json) {
-          const target = document.getElementById("chart1");
-          const controller = telechart(json)
+          var target = document.getElementById("chart1");
+          var controller = telechart(json)
             // pass custom DOM handler or target element
             .mount(customMount(target, "Followers"));
         });
         fetchData("2/overview.json").then(function(json) {
-          const target = document.getElementById("chart2");
-          const controller = telechart(json)
+          var target = document.getElementById("chart2");
+          var controller = telechart(json)
             // pass custom DOM handler or target element
             .mount(customMount(target, "Interactions"));
         });
         fetchData("3/overview.json").then(function(json) {
-          const target = document.getElementById("chart3");
-          const controller = telechart(json)
+          var target = document.getElementById("chart3");
+          var controller = telechart(json)
             // pass custom DOM handler or target element
             .mount(customMount(target, "Views"));
         });
         fetchData("4/overview.json").then(function(json) {
-          const target = document.getElementById("chart4");
-          const controller = telechart(json)
+          var target = document.getElementById("chart4");
+          var controller = telechart(json)
             // pass custom DOM handler or target element
             .mount(customMount(target, "Messages"));
         });
         fetchData("5/overview.json").then(function(json) {
-          const target = document.getElementById("chart5");
-          const controller = telechart(json)
+          var target = document.getElementById("chart5");
+          var controller = telechart(json)
             // pass custom DOM handler or target element
             .mount(customMount(target, "Apps"));
         });
+
+
+        // Toggles between night/day mode
+        (function() {
+          var day = true;
+          var demo = document.getElementsByClassName("demo")[0];
+          var switcher = document.getElementsByClassName("switch")[0];
+
+          switcher.addEventListener("click", function switchHandler(e) {
+            day = !day;
+
+            if (day) {
+              switcher.textContent = "Switch to Night Mode";
+              demo.classList.remove("night");
+            } else {
+              switcher.textContent = "Switch to Day Mode";
+              demo.classList.add("night");
+            }
+          });
+        })();
       });
     </script>
   </body>

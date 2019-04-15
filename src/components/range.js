@@ -1,23 +1,21 @@
 const { formatDate } = require("../utils/transformation");
 
 module.exports = (state, options) => {
-  const element = document.createElement("div");
-  element.className = "tc-range";
+  const wrapper = document.createElement("div");
+  wrapper.className = "tc-range";
 
   const from = document.createElement("div");
   const to = document.createElement("div");
 
-  element.appendChild(from);
-  element.appendChild(
-    document.createElement("div").appendChild(document.createTextNode(" - "))
-  );
-  element.appendChild(to);
+  wrapper.appendChild(from);
+  wrapper.appendChild(document.createTextNode(" - "));
+  wrapper.appendChild(to);
 
   const previousState = { window: {} };
   const cache = {};
 
   return {
-    element,
+    element: wrapper,
     render: force => {
       const offset =
         state.window.offsetD === undefined

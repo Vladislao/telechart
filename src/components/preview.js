@@ -48,7 +48,7 @@ module.exports = state => {
         // chart
         chart.lineWidth = state.y.lineWidth * dpr;
         chart.width = canvas.width;
-        chart.height = canvas.height - track.padding;
+        chart.height = canvas.height - track.padding * 2;
 
         chart.x = 0;
         chart.y = track.padding;
@@ -155,7 +155,12 @@ module.exports = state => {
       }
 
       if (shouldDraw) {
-        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.clearRect(
+          chart.region.x,
+          chart.region.y,
+          chart.region.width,
+          chart.region.height
+        );
 
         cache.first = true;
 
@@ -195,13 +200,14 @@ module.exports = state => {
         context.globalAlpha = state.window.mask.color.alpha;
         context.fillStyle = state.window.mask.color.hex;
 
+        // console.log(chart.y, chart.height, canvas.height, track.padding);
         context.fillRect(chart.x, chart.y, track.left, chart.height);
 
-        if (track.right !== canvas.width) {
+        if (track.right !== chart.region.width) {
           context.fillRect(
             track.right,
             chart.y,
-            canvas.width - track.right,
+            chart.width - track.right,
             chart.height
           );
         }
@@ -234,7 +240,7 @@ module.exports = state => {
         );
         context.fillRect(
           track.left,
-          canvas.height - track.padding,
+          chart.region.height - track.padding,
           track.right - track.left,
           track.padding
         );

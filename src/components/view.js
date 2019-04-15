@@ -156,9 +156,17 @@ module.exports = (state, options) => {
         chart.start = Math.trunc(state.window.offset);
         chart.range = Math.trunc(state.window.width);
 
-        chart.scaleX =
-          chart.width / (chart.range - 1 + state.window.width - chart.range);
-        chart.offsetX = -chart.scaleX * (state.window.offset - chart.start);
+        if (cache.bar) {
+          chart.scaleX =
+            chart.width / (chart.range + state.window.width - chart.range);
+          chart.offsetX =
+            -chart.scaleX * (state.window.offset - chart.start) +
+            chart.scaleX / 2;
+        } else {
+          chart.scaleX =
+            chart.width / (chart.range - 1 + state.window.width - chart.range);
+          chart.offsetX = -chart.scaleX * (state.window.offset - chart.start);
+        }
       }
 
       // update tooltip position
@@ -170,9 +178,14 @@ module.exports = (state, options) => {
         previousState.tooltip.index = state.tooltip.index;
 
         if (state.tooltip.index !== null) {
-          tooltip.indexD = chart.start + state.tooltip.indexD;
+          tooltip.indexD = Math.min(
+            chart.start + state.tooltip.indexD,
+            state.x.values.length - 1
+          );
           tooltip.xD =
-            chart.x + state.tooltip.indexD * chart.scaleX + chart.offsetX;
+            chart.x +
+            (tooltip.indexD - chart.start) * chart.scaleX +
+            chart.offsetX;
           tooltip.x =
             chart.x + state.tooltip.index * chart.scaleX + chart.offsetX;
         } else {
