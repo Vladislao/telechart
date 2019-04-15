@@ -67,12 +67,12 @@ body {
 }
 
 .night .tc-tooltip {
-  background-color: rgba(37, 50, 64, 0.5);
-  border: 1px solid #202a37;
+  background-color: #242f3d;
+  border: 1px solid #56626d;
 }
 
 .night .tc-control {
-  border: 1px solid #202a37;
+  border: 1px solid #56626d;
 }
 
 .chart {

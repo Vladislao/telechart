@@ -40,15 +40,15 @@
       };
 
       ready(function() {
-        // Chart initialization
+        // Fetch helper
         var fetchData = path =>
           fetch(`/data/${path}`).then(function(response) {
             return response.json();
           });
 
+        // Compose your DOM tree as you like
         var customMount = function(target, name) {
           return function (components) {
-            // Compose your DOM tree as you like
             target.classList.add("tc-wrapper");
 
             var headerWrapper = document.createElement("div");
@@ -66,36 +66,122 @@
           }
         };
 
-        var charts = [];
+        // Some common theme settings
+        var setCommonTheme = function(day, engine, state) {
+          state.window.mask.color.hex = day ? "#E2EEF9" : "#304259";
+          state.window.mask.color.alpha = 0.6;
+          state.window.tracker.color.hex = day ? "#C0D1E1" : "#56626D";
+          state.window.tracker.color.alpha = 1;
+          state.grid.color.hex = day ? "#182D3B" : "#FFFFFF";
+          state.grid.color.alpha = 0.1;
+        }
+
+        var listeners = [];
+        var onThemeChange = function(day) {
+          listeners.forEach(v => v(day));
+        }
+
         fetchData("1/overview.json").then(function(json) {
+          var setTheme = function(day) {
+            return function (engine, state) {
+              setCommonTheme(day, engine, state);
+              state.axis.color.hex = day ? "#8E8E93" : "#A3B1C2";
+              state.axis.color.alpha = day ? 1 : 0.6;
+            }
+          };
+
           var target = document.getElementById("chart1");
+          // Chart initialization
           var controller = telechart(json)
             // pass custom DOM handler or target element
+            .update(setTheme(true))
             .mount(customMount(target, "Followers"));
+
+          listeners.push(function (day) {
+            controller
+              .update(setTheme(day))
+              .render()
+          });
         });
         fetchData("2/overview.json").then(function(json) {
+          var setTheme = function(day) {
+            return function (engine, state) {
+              setCommonTheme(day, engine, state);
+              state.axis.color.hex = day ? "#8E8E93" : "#A3B1C2";
+              state.axis.color.alpha = day ? 1 : 0.6;
+            }
+          };
+
           var target = document.getElementById("chart2");
           var controller = telechart(json)
-            // pass custom DOM handler or target element
+            .update(setTheme(true))
             .mount(customMount(target, "Interactions"));
+
+          listeners.push(function (day) {
+            controller
+              .update(setTheme(day))
+              .render()
+          });
         });
         fetchData("3/overview.json").then(function(json) {
+          var setTheme = function(day) {
+            return function (engine, state) {
+              setCommonTheme(day, engine, state);
+              state.axis.color.hex = day ? "#252529" : "#A3B1C2";
+              state.axis.color.alpha = day ? 0.5 : 0.6;
+            }
+          };
+
           var target = document.getElementById("chart3");
           var controller = telechart(json)
-            // pass custom DOM handler or target element
-            .mount(customMount(target, "Views"));
+            .update(setTheme(true))
+            .mount(customMount(target, "Messages"));
+
+          listeners.push(function (day) {
+            controller
+              .update(setTheme(day))
+              .render(true)
+          });
         });
         fetchData("4/overview.json").then(function(json) {
+          var setTheme = function(day) {
+            return function (engine, state) {
+              setCommonTheme(day, engine, state);
+              state.axis.color.hex = day ? "#252529" : "#A3B1C2";
+              state.axis.color.alpha = day ? 0.5 : 0.6;
+            }
+          };
+
           var target = document.getElementById("chart4");
           var controller = telechart(json)
-            // pass custom DOM handler or target element
-            .mount(customMount(target, "Messages"));
+            .update(setTheme(true))
+            .mount(customMount(target, "Views"));
+
+          listeners.push(function (day) {
+            controller
+              .update(setTheme(day))
+              .render()
+          });
         });
         fetchData("5/overview.json").then(function(json) {
+          var setTheme = function(day) {
+            return function (engine, state) {
+              setCommonTheme(day, engine, state);
+              state.axis.color.hex = day ? "#252529" : "#A3B1C2";
+              state.axis.color.alpha = day ? 0.5 : 0.6;
+            }
+          };
+
           var target = document.getElementById("chart5");
           var controller = telechart(json)
-            // pass custom DOM handler or target element
+            .update(setTheme(true))
             .mount(customMount(target, "Apps"));
+
+          listeners.push(function (day) {
+            controller
+              .update(setTheme(day))
+              .render()
+          });
         });
 
 
@@ -111,9 +197,11 @@
             if (day) {
               switcher.textContent = "Switch to Night Mode";
               demo.classList.remove("night");
+              onThemeChange(day);
             } else {
               switcher.textContent = "Switch to Day Mode";
               demo.classList.add("night");
+              onThemeChange(day);
             }
           });
         })();

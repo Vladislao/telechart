@@ -5,7 +5,7 @@
 
 .tc-tooltip {
   position: absolute;
-  top: 0px;
+  top: 5px;
 
   padding: 10px;
   background-color: #fff;
@@ -15,6 +15,7 @@
   border-radius: 10px;
 
   transition: transform ease-out 500ms;
+  cursor: pointer;
 }
 
 .tc-tooltip--hidden {
@@ -166,6 +167,34 @@
 .tc-range div {
   width: 72px;
 }
+
 .tc-range div:first-child {
   margin-right: 3px;
+}
+
+.apply-shake {
+  animation: wobble-hor-bottom 0.8s both;
+}
+
+@keyframes wobble-hor-bottom {
+  0%,
+  100% {
+    transform: translateX(0%);
+    transform-origin: 50% 50%;
+  }
+  15% {
+    transform: translateX(-5px) rotate(-4deg);
+  }
+  30% {
+    transform: translateX(3px) rotate(4deg);
+  }
+  45% {
+    transform: translateX(-3px) rotate(-2deg);
+  }
+  60% {
+    transform: translateX(1px) rotate(2deg);
+  }
+  75% {
+    transform: translateX(-1px) rotate(-0.6deg);
+  }
 }

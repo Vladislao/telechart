@@ -87,7 +87,14 @@ module.exports = function telechart(data, options) {
     range: range.element
   };
 
-  // TODO: Destroy, update options, update data
+  const render = force => {
+    engine.registerAnimation({
+      force,
+      draw: [view.render, preview.render, range.render, tooltip.render]
+    });
+  };
+
+  // TODO: Destroy
   /*
    * API for chart
    */
@@ -100,15 +107,16 @@ module.exports = function telechart(data, options) {
       }
 
       // Render all components for the first time
-      engine.registerAnimation({
-        force: true,
-        draw: [view.render, preview.render, range.render, tooltip.render]
-      });
+      render(true);
 
       return api;
     },
     update: func => {
       func(engine, state, components);
+      return api;
+    },
+    render: force => {
+      render(force);
       return api;
     }
   };
