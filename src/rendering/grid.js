@@ -28,16 +28,16 @@ const drawVerticalLine = (context, x, position) => {
   context.stroke();
 };
 
-const drawPoint = (context, x, y, radius) => {
+const drawPoint = (context, x, y, radius, lineWidth) => {
   context.beginPath();
-  context.arc(x, y, radius + 1, 0, 2 * Math.PI);
+  context.arc(x, y, radius, 0, 2 * Math.PI);
   context.stroke();
 
   const previous = context.globalCompositeOperation;
   context.globalCompositeOperation = "destination-out";
 
   context.beginPath();
-  context.arc(x, y, radius - 1, 0, 2 * Math.PI);
+  context.arc(x, y, radius - ((0.5 + lineWidth / 2) | 0), 0, 2 * Math.PI);
   context.fill();
   context.globalCompositeOperation = previous;
 };

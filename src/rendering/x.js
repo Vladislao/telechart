@@ -31,10 +31,10 @@ module.exports = (state, context, cache, modes) => {
       text.region.height
     );
 
-    const alpha = state.axis.color.alpha;
+    const alpha = state.axis.x.color.alpha;
 
     context.font = text.font;
-    context.fillStyle = state.axis.color.hex;
+    context.fillStyle = state.axis.x.color.hex;
     context.globalAlpha = alpha;
     context.textBaseline = "top";
     context.textAlign = "center";
@@ -51,7 +51,7 @@ module.exports = (state, context, cache, modes) => {
       );
     }
 
-    context.globalAlpha = alpha - text.fraction;
+    context.globalAlpha = alpha * (1 - text.fraction);
 
     for (
       let i = text.step - text.padding;

@@ -52,9 +52,12 @@ module.exports = (state, options) => {
     previousState
   };
 
+  const bounds = {};
+
   return {
     element: wrapper,
-    register: callback => callback({ id: "view", element: wrapper, canvas }),
+    register: callback =>
+      callback({ id: "view", element: wrapper, canvas, bounds }),
 
     render: force => {
       cache.mode = MODE.NONE;
@@ -65,6 +68,13 @@ module.exports = (state, options) => {
       if (force) {
         cache.mode |= MODE.FORCE;
         resize(canvas);
+
+        // update element positions
+        const clientRect = canvas.getBoundingClientRect();
+        bounds.left = clientRect.left + window.pageXOffset;
+        bounds.top = clientRect.top + window.pageYOffset;
+        bounds.right = clientRect.right + window.pageXOffset;
+        bounds.bottom = clientRect.bottom + window.pageYOffset;
 
         const dpr = window.devicePixelRatio;
 
@@ -81,8 +91,8 @@ module.exports = (state, options) => {
         }
 
         // text
-        const fontSize = (state.axis.size || 10) * dpr;
-        text.font = `${fontSize}px ${state.axis.font}`;
+        const fontSize = (state.axis.x.size || 10) * dpr;
+        text.font = `${fontSize}px ${state.axis.x.font}`;
 
         text.height = fontSize + 4 * dpr;
         text.width = canvas.width;
@@ -108,6 +118,7 @@ module.exports = (state, options) => {
 
         // grid lines
         grid.lineWidth = state.grid.lineWidth * dpr;
+        grid.font = `${(state.axis.y.size || 10) * dpr}px ${state.axis.y.font}`;
 
         // tooltip point and line
         tooltip.lineWidth = state.tooltip.lineWidth * dpr;
@@ -153,8 +164,8 @@ module.exports = (state, options) => {
         previousState.window.offset = state.window.offset;
         previousState.window.width = state.window.width;
 
-        chart.start = Math.trunc(state.window.offset);
-        chart.range = Math.trunc(state.window.width);
+        chart.start = state.window.offset | 0;
+        chart.range = state.window.width | 0;
 
         if (cache.bar) {
           chart.scaleX =

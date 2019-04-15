@@ -20,6 +20,8 @@ module.exports = state => {
     state: previousState
   };
 
+  const bounds = {};
+
   return {
     element: canvas,
     render: force => {
@@ -30,6 +32,13 @@ module.exports = state => {
 
       if (force) {
         resize(canvas);
+
+        // update element positions
+        const clientRect = canvas.getBoundingClientRect();
+        bounds.left = clientRect.left + window.pageXOffset;
+        bounds.top = clientRect.top + window.pageYOffset;
+        bounds.right = clientRect.right + window.pageXOffset;
+        bounds.bottom = clientRect.bottom + window.pageYOffset;
 
         const dpr = window.devicePixelRatio;
 
@@ -200,7 +209,6 @@ module.exports = state => {
         context.globalAlpha = state.window.mask.color.alpha;
         context.fillStyle = state.window.mask.color.hex;
 
-        // console.log(chart.y, chart.height, canvas.height, track.padding);
         context.fillRect(chart.x, chart.y, track.left, chart.height);
 
         if (track.right !== chart.region.width) {
@@ -246,6 +254,6 @@ module.exports = state => {
         );
       }
     },
-    register: callback => callback({ id: "preview", element: canvas })
+    register: callback => callback({ id: "preview", element: canvas, bounds })
   };
 };

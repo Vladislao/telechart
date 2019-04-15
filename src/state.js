@@ -51,7 +51,7 @@ const create = data => {
     window: {
       offset: windowOffset,
       width: windowWidth,
-      minwidth: closest(x.length, 0.05),
+      minwidth: closest(x.length, 0.1),
       tracker: {
         width: 10,
         stroke: {
@@ -88,11 +88,21 @@ const create = data => {
       }
     },
     axis: {
-      font: "Arial",
-      size: 10,
-      color: {
-        hex: "#8E8E93",
-        alpha: 1
+      x: {
+        font: "Arial",
+        size: 10,
+        color: {
+          hex: "#8E8E93",
+          alpha: 1
+        }
+      },
+      y: {
+        font: "Arial",
+        size: 10,
+        color: {
+          hex: "#8E8E93",
+          alpha: 1
+        }
       }
     }
   };

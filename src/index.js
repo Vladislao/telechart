@@ -33,7 +33,6 @@ module.exports = function telechart(data, options) {
    * TODO: Move to WebWorker to optimize page loading speed
    */
   const state = createState(data);
-  console.log(state);
 
   /*
    * Create components used by chart

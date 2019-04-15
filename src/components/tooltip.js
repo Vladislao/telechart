@@ -129,7 +129,7 @@ module.exports = (state, options) => {
           const offset =
             state.window.offsetD != null
               ? state.window.offsetD
-              : Math.trunc(state.window.offset);
+              : state.window.offset | 0;
 
           const index = Math.min(
             Math.max(offset + state.tooltip.indexD, 0),

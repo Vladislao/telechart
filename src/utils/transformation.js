@@ -21,7 +21,7 @@ const segmentTree = require("./segmentTree");
 const findScale = (min, max, count) => {
   const range = max - min;
   const roughStep = range / count;
-  const stepPower = Math.pow(10, Math.floor(Math.log10(Math.abs(roughStep))));
+  const stepPower = 10 ** Math.floor(Math.log10(Math.abs(roughStep)));
 
   const normalizedStep = (roughStep / stepPower) * 10;
   const preferedStep =
@@ -145,7 +145,7 @@ const formatDate = (v, mode) => {
 const formatValue = v => {
   const abs = Math.abs(v);
 
-  if (abs > 999999999) return (v / 1000000000).toFixed(2).trim + "B";
+  if (abs > 999999999) return (v / 1000000000).toFixed(2) + "B";
   if (abs > 999999) return (v / 1000000).toFixed(2) + "M";
   if (abs > 999) return (v / 1000).toFixed(1) + "K";
 
@@ -156,6 +156,15 @@ const closest = (target, offset) =>
   Math.max(Math.min(Math.round((target - 1) * offset), target - 1), 0);
 
 const bound = (x, lower, upper) => Math.max(Math.min(x, upper), lower);
+
+const inbounds = (bounds, x, y) => {
+  return (
+    x >= bounds.left &&
+    x <= bounds.right &&
+    y >= bounds.top &&
+    y <= bounds.bottom
+  );
+};
 
 const resize = canvas => {
   const realToCSSPixels = window.devicePixelRatio;
@@ -178,4 +187,5 @@ module.exports.findMatrix = findMatrix;
 module.exports.findSum = findSum;
 module.exports.closest = closest;
 module.exports.bound = bound;
+module.exports.inbounds = inbounds;
 module.exports.resize = resize;

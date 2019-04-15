@@ -38,14 +38,31 @@ module.exports = (state, engine, render) => v => {
 
   engine.addEventListener("mousemove", e => {
     if (e.target !== v.canvas) return;
-    if (event) handleMove(e.offsetX);
-    else handleStart(e.offsetX, e.target.offsetWidth);
+
+    const offsetX = e.pageX - v.bounds.left;
+
+    if (event) handleMove(offsetX);
+    else handleStart(offsetX, v.bounds.right - v.bounds.left);
+  });
+  engine.addEventListener("touchstart", e => {
+    if (e.target !== v.canvas) {
+      handleCancel();
+    } else {
+      const pageX = e.targetTouches[0].pageX;
+      const offsetX = pageX - v.bounds.left;
+
+      if (event) {
+        handleMove(offsetX);
+      } else {
+        handleStart(offsetX, v.bounds.right - v.bounds.left);
+      }
+    }
   });
   v.element.addEventListener(
     "mouseenter",
     e => {
       if (e.target !== v.canvas) return;
-      handleStart(e.offsetX, e.target.offsetWidth);
+      handleStart(e.pageX - v.bounds.left, v.bounds.right - v.bounds.left);
     },
     engine.passive
   );

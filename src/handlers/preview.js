@@ -4,12 +4,16 @@ const {
   createInspectAnimation
 } = require("../animations/drag");
 
-const determineAction = (state, offsetX, width) => {
+const determineAction = (state, offsetX, width, mobile) => {
   const scaleX = width / (state.x.values.length - 1);
-  const trackerWidth = state.window.tracker.width * window.devicePixelRatio;
+  // make life easier for mobile devices
+  const trackerWidth = state.window.tracker.width * (mobile ? 3 : 1);
 
-  const leftTrackX = state.window.offset * scaleX;
-  const rightTrackX = (state.window.offset + state.window.width - 1) * scaleX;
+  const leftTrackX =
+    state.window.offset * scaleX - (mobile ? state.window.tracker.width : 0);
+  const rightTrackX =
+    (state.window.offset + state.window.width - 1) * scaleX +
+    (mobile ? state.window.tracker.width : 0);
 
   if (offsetX < leftTrackX || offsetX > rightTrackX) return "scroll";
 
@@ -30,18 +34,32 @@ module.exports = (state, engine, render) => v => {
   let event = null;
   let animation = null;
 
-  const handleInspect = (offsetX, pageX, target) => {
-    const width = target.width / window.devicePixelRatio;
+  const handleInspect = (offsetX, width) => {
     const scaleX = width / state.x.values.length;
 
-    const inspectEvent = {
-      offset: bound(
-        Math.round(offsetX / scaleX - state.window.minwidth / 2),
-        0,
-        state.x.values.length - state.window.minwidth
-      ),
-      width: state.window.minwidth
-    };
+    const action = determineAction(state, offsetX, width);
+
+    let inspectEvent;
+    if (action === "resize-left") {
+      inspectEvent = {
+        offset: 0,
+        width: state.window.offset + state.window.width
+      };
+    } else if (action === "resize-right") {
+      inspectEvent = {
+        offset: state.window.offset,
+        width: state.x.values.length - state.window.offset
+      };
+    } else {
+      inspectEvent = {
+        offset: bound(
+          Math.round(offsetX / scaleX - state.window.minwidth / 2),
+          0,
+          state.x.values.length - state.window.minwidth
+        ),
+        width: state.window.minwidth
+      };
+    }
 
     engine.cancelAnimation(animation);
     animation = engine.registerAnimation(
@@ -49,17 +67,10 @@ module.exports = (state, engine, render) => v => {
     );
   };
 
-  const handleStart = (offsetX, pageX, target) => {
+  const handleStart = (offsetX, pageX, width) => {
     if (event) return;
-
-    const width = target.width / window.devicePixelRatio;
-
     event = {
-      type: determineAction(
-        state,
-        offsetX * window.devicePixelRatio,
-        target.width
-      ),
+      type: determineAction(state, offsetX, width, engine.mobile),
       initialPageX: pageX,
       step: state.x.values.length / width,
       pageX,
@@ -72,10 +83,9 @@ module.exports = (state, engine, render) => v => {
     );
   };
 
-  const handleMove = e => {
+  const handleMove = pageX => {
     if (event === null) return;
-
-    event.pageX = e.pageX;
+    event.pageX = pageX;
   };
 
   const handleCancel = () => {
@@ -89,7 +99,22 @@ module.exports = (state, engine, render) => v => {
     "mousedown",
     e => {
       e.preventDefault();
-      handleStart(e.offsetX, e.pageX, e.target);
+
+      handleStart(
+        e.pageX - v.bounds.left,
+        e.pageX,
+        v.bounds.right - v.bounds.left
+      );
+    },
+    false
+  );
+
+  v.element.addEventListener(
+    "touchstart",
+    e => {
+      e.preventDefault();
+      const pageX = e.targetTouches[0].pageX;
+      handleStart(pageX - v.bounds.left, pageX, v.bounds.right - v.bounds.left);
     },
     false
   );
@@ -98,13 +123,33 @@ module.exports = (state, engine, render) => v => {
     "dblclick",
     e => {
       e.preventDefault();
-      handleInspect(e.offsetX, e.pageX, e.target);
+      handleInspect(e.pageX - v.bounds.left, v.bounds.right - v.bounds.left);
     },
     false
   );
 
-  engine.addEventListener("mousemove", handleMove);
+  v.element.addEventListener(
+    "touchstart",
+    e => {
+      e.preventDefault();
+      const pageX = e.targetTouches[0].pageX;
+      handleStart(pageX - v.bounds.left, pageX, v.bounds.right - v.bounds.left);
+    },
+    false
+  );
+
+  engine.addEventListener("mousemove", e => {
+    if (!event) return;
+    handleMove(e.pageX);
+  });
+  engine.addEventListener("touchmove", e => {
+    if (!event) return;
+    handleMove(e.targetTouches[0].pageX);
+  });
+
   engine.addEventListener("mouseup", handleCancel);
+  engine.addEventListener("touchcancel", handleCancel);
+  engine.addEventListener("touchend", handleCancel);
 
   // v.element.addEventListener(
   //   "touchstart",

@@ -9,7 +9,7 @@ const {
 } = require("./grid");
 
 module.exports = (state, context, cache, modes) => {
-  const { previousState, chart, grid, tooltip, text } = cache;
+  const { previousState, chart, grid, tooltip } = cache;
 
   if (state.y_scaled) {
     if (!previousState.y0.matrix) {
@@ -141,11 +141,11 @@ module.exports = (state, context, cache, modes) => {
 
         const y =
           chart.y + line.values[tooltip.indexD] * chart.scaleY + chart.offsetY;
-        drawPoint(context, tooltip.xD, y, tooltip.radius);
+        drawPoint(context, tooltip.xD, y, tooltip.radius, chart.lineWidth);
       }
     }
 
-    context.font = text.font;
+    context.font = grid.font;
     context.textBaseline = "bottom";
 
     if (state.y_scaled) {
@@ -167,8 +167,8 @@ module.exports = (state, context, cache, modes) => {
       chart.offsetY = chart.offsetY1;
       drawYText(context, state.y0.matrix[1], chart.width, chart, cache.formatY);
     } else {
-      context.fillStyle = state.axis.color.hex;
-      context.globalAlpha = state.axis.color.alpha;
+      context.fillStyle = state.axis.y.color.hex;
+      context.globalAlpha = state.axis.y.color.alpha;
 
       context.textAlign = "start";
       // TODO: pass formated values

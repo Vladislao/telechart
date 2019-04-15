@@ -19,11 +19,11 @@ module.exports = (state, options) => {
     render: force => {
       const offset =
         state.window.offsetD === undefined
-          ? Math.trunc(state.window.offset)
+          ? state.window.offset | 0
           : state.window.offsetD;
       const width =
         state.window.widthD === undefined
-          ? Math.trunc(state.window.width)
+          ? state.window.width | 0
           : state.window.widthD;
 
       if (force) {
