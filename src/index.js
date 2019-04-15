@@ -13,18 +13,16 @@ const createControlHandlers = require("./handlers/controls");
 const createTooltipHandler = require("./handlers/tooltip");
 const createPreviewHandler = require("./handlers/preview");
 
-const createDOM = (element, chart, controls, preview, tooltip, range) => {
+const mountDefault = (element, components) => {
   element.className = "tc-wrapper";
 
-  element.appendChild(range);
-  if (tooltip) chart.appendChild(tooltip);
-
-  element.appendChild(chart);
-  if (preview) element.appendChild(preview);
-  if (controls) element.appendChild(controls);
+  element.appendChild(components.range);
+  element.appendChild(components.view);
+  element.appendChild(components.preview);
+  element.appendChild(components.controls);
 };
 
-module.exports = (element, data, options) => {
+module.exports = function telechart(data, options) {
   /*
    * Engine handles rendering and initialized once on the page.
    */
@@ -35,7 +33,7 @@ module.exports = (element, data, options) => {
    * TODO: Move to WebWorker to optimize page loading speed
    */
   const state = createState(data);
-  console.log(state);
+  // console.log(state);
 
   /*
    * Create components used by chart
@@ -44,10 +42,15 @@ module.exports = (element, data, options) => {
    *  render   - function that updates component based on provided state once called
    *  register - function that receives single callback, can be used to add event handlers
    */
+  const tooltip = createTooltip(state);
   const view = createView(state);
+
+  // adds tooltip to view wrapper
+  // important for proper event handling
+  view.element.appendChild(tooltip.element);
+
   const preview = createPreview(state);
   const controls = createControls(state);
-  const tooltip = createTooltip(state);
   const range = createRange(state);
 
   // Handle click events for toggle
@@ -69,23 +72,42 @@ module.exports = (element, data, options) => {
     ])
   );
 
-  // Add elements to the DOM tree
-  createDOM(
-    element,
-    view.element,
-    controls.element,
-    preview.element,
-    tooltip.element,
-    range.element
-  );
+  const components = {
+    view,
+    controls,
+    preview,
+    tooltip,
+    range
+  };
 
-  // Render all components for the first time
-  engine.registerAnimation({
-    force: true,
-    draw: [view.render, preview.render, range.render, tooltip.render]
-  });
+  const elements = {
+    view: view.element,
+    preview: preview.element,
+    controls: controls.element,
+    range: range.element
+  };
 
   // TODO: Destroy, update options, update data
-  // TODO: Might be an API
-  return state;
+  /*
+   * API for chart
+   */
+  const api = {
+    mount: func => {
+      if (typeof func === "function") {
+        func(elements);
+      } else {
+        mountDefault(func, elements);
+      }
+
+      // Render all components for the first time
+      engine.registerAnimation({
+        force: true,
+        draw: [view.render, preview.render, range.render, tooltip.render]
+      });
+
+      return api;
+    }
+  };
+
+  return api;
 };

@@ -6,7 +6,9 @@ const createShowAnimation = (state, chart, render) => {
   let sum = [];
   if (state.stacked) {
     sum = findSum(state);
-    state.y.mmtree = segmentTree.create(sum);
+    if (!state.percentage) {
+      state.y.mmtree = segmentTree.create(sum);
+    }
   }
 
   const globalYMatrix = findMatrix(state, 0, state.x.values.length);
@@ -53,7 +55,9 @@ const createHideAnimation = (state, chart, render) => {
   let sum = [];
   if (state.stacked) {
     sum = findSum(state);
-    state.y.mmtree = segmentTree.create(sum);
+    if (!state.percentage) {
+      state.y.mmtree = segmentTree.create(sum);
+    }
   }
 
   const globalYMatrix = findMatrix(state, 0, state.x.values.length);

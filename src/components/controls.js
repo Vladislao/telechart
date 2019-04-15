@@ -15,6 +15,14 @@ const createControl = chart => {
 };
 
 module.exports = state => {
+  if (state.ids.length < 2) {
+    return {
+      element: null,
+      render: () => {},
+      register: () => {}
+    };
+  }
+
   const wrapper = document.createElement("div");
   wrapper.className = "tc-controls";
 

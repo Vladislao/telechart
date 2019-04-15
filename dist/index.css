@@ -21,17 +21,28 @@ body {
 }
 
 .demo {
-  font-family: "Roboto", sans-serif;
-  font-size: 14px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
   font-weight: 400;
 
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 80px;
+}
+
+.demo h1 {
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 40px;
+  margin-bottom: 10px;
+}
+.demo h2 {
+  font-size: 16px;
+  margin-bottom: 30px;
 }
 
 .switch {
-  display: flex;
-  justify-content: center;
-
   font-size: 18px;
   color: #3c9ede;
   cursor: pointer;
@@ -53,12 +64,18 @@ body {
 }
 
 .chart {
-  margin-bottom: 20px;
+  margin-bottom: 40px;
   width: 500px;
 }
 
-.chart > h3 {
+.chart__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.chart__header h3 {
   font-size: 16px;
   font-weight: bold;
-  margin-bottom: 10px;
 }

@@ -16,27 +16,13 @@
   </head>
   <body>
     <div class="demo">
-      <a href="https://github.com/Vladislao/telechart">Sources</a>
-      <div class="chart">
-        <h3>Followers</h3>
-        <div id="chart1"></div>
-      </div>
-      <div class="chart">
-        <h3>Interactions</h3>
-        <div id="chart2"></div>
-      </div>
-      <div class="chart">
-        <h3>Followers</h3>
-        <div id="chart3"></div>
-      </div>
-      <div class="chart">
-        <h3>Followers</h3>
-        <div id="chart4"></div>
-      </div>
-      <div class="chart">
-        <h3>Followers</h3>
-        <div id="chart5"></div>
-      </div>
+      <h1>telechart.js</h1>
+      <h2>Made for Stage 2 of the Telegram's Chart Coding Competition</h1>
+      <div id="chart1" class="chart"></div>
+      <div id="chart2" class="chart"></div>
+      <div id="chart3" class="chart"></div>
+      <div id="chart4" class="chart"></div>
+      <div id="chart5" class="chart"></div>
       <div class="switch">Switch to Night Mode</div>
     </div>
 
@@ -72,41 +58,60 @@
     <script>
       window.ready(function() {
         // Chart initialization
-        fetch("/data/1/overview.json")
-          .then(function(response) {
+        const fetchData = path =>
+          fetch(`/data/${path}`).then(function(response) {
             return response.json();
-          })
-          .then(function(json) {
-            telechart(document.getElementById("chart1"), json);
           });
-        fetch("/data/2/overview.json")
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(json) {
-            telechart(document.getElementById("chart2"), json);
-          });
-        fetch("/data/3/overview.json")
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(json) {
-            telechart(document.getElementById("chart3"), json);
-          });
-        fetch("/data/4/overview.json")
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(json) {
-            telechart(document.getElementById("chart4"), json);
-          });
-        fetch("/data/5/overview.json")
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(json) {
-            telechart(document.getElementById("chart5"), json);
-          });
+
+        const customMount = (target, name) => components => {
+          // Compose your DOM tree as you like
+          target.classList.add("tc-wrapper");
+
+          const headerWrapper = document.createElement("div");
+          headerWrapper.className = "chart__header";
+
+          const header = document.createElement("h3");
+          header.appendChild(document.createTextNode(name));
+          headerWrapper.appendChild(header);
+          headerWrapper.appendChild(components.range);
+
+          target.appendChild(headerWrapper);
+          target.appendChild(components.view);
+          target.appendChild(components.preview);
+          if (components.controls) target.appendChild(components.controls);
+        };
+
+        const charts = [];
+        fetchData("1/overview.json").then(function(json) {
+          const target = document.getElementById("chart1");
+          const controller = telechart(json)
+            // pass custom DOM handler or target element
+            .mount(customMount(target, "Followers"));
+        });
+        fetchData("2/overview.json").then(function(json) {
+          const target = document.getElementById("chart2");
+          const controller = telechart(json)
+            // pass custom DOM handler or target element
+            .mount(customMount(target, "Interactions"));
+        });
+        fetchData("3/overview.json").then(function(json) {
+          const target = document.getElementById("chart3");
+          const controller = telechart(json)
+            // pass custom DOM handler or target element
+            .mount(customMount(target, "Views"));
+        });
+        fetchData("4/overview.json").then(function(json) {
+          const target = document.getElementById("chart4");
+          const controller = telechart(json)
+            // pass custom DOM handler or target element
+            .mount(customMount(target, "Messages"));
+        });
+        fetchData("5/overview.json").then(function(json) {
+          const target = document.getElementById("chart5");
+          const controller = telechart(json)
+            // pass custom DOM handler or target element
+            .mount(customMount(target, "Apps"));
+        });
       });
     </script>
   </body>
