@@ -54,7 +54,7 @@
 }
 
 .tc-chart {
-  border: 1px solid black;
+  /* border: 1px solid black; */
 
   height: 300px;
   width: 100%;
@@ -62,7 +62,7 @@
 }
 
 .tc-preview {
-  border: 1px solid black;
+  /* border: 1px solid black; */
 
   border-radius: 5px;
   height: 40px;

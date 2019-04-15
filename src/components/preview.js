@@ -43,11 +43,12 @@ module.exports = state => {
         track.padding = 1 * dpr;
         track.borderRadius = 5 * dpr;
         track.width = (state.window.tracker.width || 10) * dpr;
+        track.height = canvas.height;
 
         // chart
         chart.lineWidth = state.y.lineWidth * dpr;
         chart.width = canvas.width;
-        chart.height = canvas.height - track.padding * 2;
+        chart.height = canvas.height - track.padding;
 
         chart.x = 0;
         chart.y = track.padding;
@@ -60,7 +61,7 @@ module.exports = state => {
         };
 
         chart.start = 0;
-        chart.range = state.x.values.length;
+        chart.range = state.x.values.length - 1;
 
         chart.scaleX = canvas.width / chart.range;
         chart.offsetX = 0;
@@ -95,7 +96,7 @@ module.exports = state => {
 
         track.left = state.window.offset * chart.scaleX + track.width;
         track.right =
-          (state.window.offset + state.window.width) * chart.scaleX -
+          (state.window.offset + state.window.width - 1) * chart.scaleX -
           track.width;
 
         shouldDraw = true;
@@ -212,7 +213,7 @@ module.exports = state => {
           context,
           track.left,
           track.width,
-          canvas.height,
+          track.height,
           track.borderRadius,
           1
         );
@@ -220,7 +221,7 @@ module.exports = state => {
           context,
           track.right,
           -track.width,
-          canvas.height,
+          track.height,
           track.borderRadius,
           -1
         );

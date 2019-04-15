@@ -89,11 +89,6 @@ const yBasic = (result, value, position) => {
 };
 
 const drawArea = (context, values, position, options) => {
-  // if (options.percentage && options.stacked) {
-  //   context.fillRect(position.x, position.y, position.width, position.height);
-  //   return;
-  // }
-
   const alpha = context.globalAlpha;
   // to avoid GC, probably unnecessary
   const y = new Array(2);
