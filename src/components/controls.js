@@ -35,8 +35,6 @@ module.exports = state => {
   return {
     element: wrapper,
     render: () => {},
-    register: callback => {
-      controls.forEach(v => callback(v));
-    }
+    register: callback => callback({ element: wrapper, controls })
   };
 };

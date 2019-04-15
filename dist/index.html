@@ -120,7 +120,9 @@
           var controller = telechart(json)
             // pass custom DOM handler or target element
             .update(setTheme(true))
-            .mount(customMount(target, "Followers", "Try to double click"));
+            .mount(
+              customMount(target, "Followers", "Try to double click scroller")
+            );
 
           listeners.push(function(day) {
             controller.update(setTheme(day)).render();
@@ -154,7 +156,13 @@
           var target = document.getElementById("chart3");
           var controller = telechart(json)
             .update(setTheme(true))
-            .mount(customMount(target, "Messages", "Stacked charts are hard"));
+            .mount(
+              customMount(
+                target,
+                "Messages",
+                "Find a way to check \\ uncheck all other filters"
+              )
+            );
 
           listeners.push(function(day) {
             controller.update(setTheme(day)).render(true);
