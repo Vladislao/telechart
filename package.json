@@ -8,7 +8,7 @@
     "start": "webpack-dev-server --open --mode=development --host 0.0.0.0",
     "build": "webpack --mode=production",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "http-server dist"
+    "serve": "http-server dist --gzip"
   },
   "browserslist": "> 0.25%, not dead",
   "keywords": [
