@@ -5,12 +5,12 @@ module.exports = (state, engine, render) => v => {
   let event = null;
 
   const handleStart = (offsetX, width) => {
-    if (event) return;
+    if (event || Number.isNaN(offsetX)) return;
 
     const windowWidth =
-      state.window.widthD === undefined
-        ? state.window.width | 0
-        : state.window.widthD;
+      state.window.widthD || state.window.widthD === 0
+        ? state.window.widthD
+        : state.window.width | 0;
 
     event = {
       offsetX,
@@ -68,7 +68,7 @@ module.exports = (state, engine, render) => v => {
   );
   v.element.addEventListener(
     "mouseleave",
-    () => {
+    e => {
       handleCancel();
     },
     engine.passive

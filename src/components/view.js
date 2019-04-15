@@ -15,6 +15,18 @@ const lighten = color => {
   return `#${lr.toString(16)}${lg.toString(16)}${lb.toString(16)}`;
 };
 
+const darken = color => {
+  const r = parseInt(color.substring(1, 3), 16);
+  const g = parseInt(color.substring(3, 5), 16);
+  const b = parseInt(color.substring(5, 7), 16);
+
+  const lr = (r - r / 3) | 0;
+  const lg = (g - g / 3) | 0;
+  const lb = (b - b / 3) | 0;
+
+  return `#${lr.toString(16)}${lg.toString(16)}${lb.toString(16)}`;
+};
+
 const MODE = {
   NONE: 0,
   FORCE: 1,
@@ -143,12 +155,17 @@ module.exports = (state, options) => {
         chart.limit = { bottom: chart.height };
 
         // some props based on charts provided
+        const lighter = state.tooltip.lighten ? lighten : darken;
         cache.lighten = {};
         cache.bar = false;
         for (let i = 0; i < state.ids.length; i++) {
           const id = state.ids[i];
           const line = state.charts[id];
-          cache.lighten[id] = lighten(line.color.hex);
+          if (lighter) {
+            cache.lighten[id] = lighter(line.color.hex);
+          } else {
+            cache.lighten[id] = lighten(line.color.hex);
+          }
           cache.bar = cache.bar || line.type === "bar";
         }
       }

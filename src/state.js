@@ -51,7 +51,7 @@ const create = data => {
     window: {
       offset: windowOffset,
       width: windowWidth,
-      minwidth: closest(x.length, 0.1),
+      minwidth: closest(x.length, 0.08),
       tracker: {
         width: 10,
         stroke: {
@@ -72,6 +72,7 @@ const create = data => {
     },
     tooltip: {
       lineWidth: 1,
+      lighten: true,
       color: {
         hex: "#182D3B",
         alpha: 0.1
