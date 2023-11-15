@@ -7,7 +7,7 @@
     <title>Telechart</title>
     <!-- CSS Reset for demonstration purposes -->
     <link rel="stylesheet" type="text/css" href="/reset.css" />
-    <link rel="stylesheet" type="text/css" href="/telechart.css" />
+    <link rel="stylesheet" type="text/css" href="/telechart.min.css" />
     <link rel="stylesheet" type="text/css" href="/index.css" />
   </head>
   <body>
@@ -33,22 +33,22 @@
     <script src="/fetch.umd.js" type="text/javascript"></script>
 
     <script src="/telechart.polyfill.js" type="text/javascript"></script>
-    <script src="/telechart.js" type="text/javascript"></script>
+    <script src="/telechart.min.js" type="text/javascript"></script>
     <script>
       // Cross-browser DOM ready
-      var ready = function(a, b, c) {
+      var ready = function (a, b, c) {
         (b = document), (c = "addEventListener");
         b[c] ? b[c]("DOMContentLoaded", a) : window.attachEvent("onload", a);
       };
 
-      ready(function() {
+      ready(function () {
         // Fetch helpers
-        var fetchData = function(path) {
-          return fetch("/data/" + path).then(function(response) {
+        var fetchData = function (path) {
+          return fetch("/data/" + path).then(function (response) {
             return response.json();
           });
         };
-        var fetchDay = function(path, mtime) {
+        var fetchDay = function (path, mtime) {
           var datetime = new Date(mtime);
           var date = datetime.getDate();
           var year = datetime.getFullYear().toString();
@@ -58,14 +58,14 @@
           var day = date > 9 ? date.toString() : "0" + date.toString();
           return fetch(
             "/data/" + path + "/" + year + "-" + smonth + "/" + day + ".json"
-          ).then(function(response) {
+          ).then(function (response) {
             return response.json();
           });
         };
 
         // Compose your DOM tree as you like
-        var customMount = function(target, name, hintText) {
-          return function(components) {
+        var customMount = function (target, name, hintText) {
+          return function (components) {
             target.classList.add("tc-wrapper");
 
             var headerWrapper = document.createElement("div");
@@ -90,7 +90,7 @@
         };
 
         // Some common theme settings
-        var setCommonTheme = function(day, engine, state) {
+        var setCommonTheme = function (day, engine, state) {
           state.window.mask.color.hex = day ? "#E2EEF9" : "#304259";
           state.window.mask.color.alpha = 0.6;
           state.window.tracker.color.hex = day ? "#C0D1E1" : "#56626D";
@@ -101,13 +101,13 @@
           state.grid.color.hex = day ? "#182D3B" : "#FFFFFF";
           state.grid.color.alpha = 0.1;
         };
-        var setLineTheme = function(day, engine, state) {
+        var setLineTheme = function (day, engine, state) {
           state.axis.x.color.hex = day ? "#8E8E93" : "#A3B1C2";
           state.axis.x.color.alpha = day ? 1 : 0.6;
           state.axis.y.color.hex = day ? "#8E8E93" : "#A3B1C2";
           state.axis.y.color.alpha = day ? 1 : 0.6;
         };
-        var setBarTheme = function(day, engine, state) {
+        var setBarTheme = function (day, engine, state) {
           state.axis.x.color.hex = day ? "#252529" : "#A3B1C2";
           state.axis.x.color.alpha = day ? 0.5 : 0.6;
           state.axis.y.color.hex = day ? "#252529" : "#ECF2F8";
@@ -115,15 +115,15 @@
         };
 
         var listeners = [];
-        var onThemeChange = function(day) {
-          listeners.forEach(function(v) {
+        var onThemeChange = function (day) {
+          listeners.forEach(function (v) {
             v(day);
           });
         };
 
-        fetchData("1/overview.json").then(function(json) {
-          var setTheme = function(day) {
-            return function(engine, state) {
+        fetchData("1/overview.json").then(function (json) {
+          var setTheme = function (day) {
+            return function (engine, state) {
               setCommonTheme(day, engine, state);
               setLineTheme(day, engine, state);
             };
@@ -137,19 +137,19 @@
             .mount(
               customMount(target, "Followers", "Try to doubleclick scroller")
             )
-            .onZoomIn(function(x, callback) {
-              fetchDay("1", x).then(function(json) {
+            .onZoomIn(function (x, callback) {
+              fetchDay("1", x).then(function (json) {
                 callback(null, json);
               });
             });
 
-          listeners.push(function(day) {
+          listeners.push(function (day) {
             controller.update(setTheme(day)).render(true, true);
           });
         });
-        fetchData("2/overview.json").then(function(json) {
-          var setTheme = function(day) {
-            return function(engine, state) {
+        fetchData("2/overview.json").then(function (json) {
+          var setTheme = function (day) {
+            return function (engine, state) {
               setCommonTheme(day, engine, state);
               setLineTheme(day, engine, state);
             };
@@ -160,13 +160,13 @@
             .update(setTheme(true))
             .mount(customMount(target, "Interactions", "2 lines 2 Y axes"));
 
-          listeners.push(function(day) {
+          listeners.push(function (day) {
             controller.update(setTheme(day)).render(true, true);
           });
         });
-        fetchData("3/overview.json").then(function(json) {
-          var setTheme = function(day) {
-            return function(engine, state) {
+        fetchData("3/overview.json").then(function (json) {
+          var setTheme = function (day) {
+            return function (engine, state) {
               setCommonTheme(day, engine, state);
               setBarTheme(day, engine, state);
             };
@@ -183,13 +183,13 @@
               )
             );
 
-          listeners.push(function(day) {
+          listeners.push(function (day) {
             controller.update(setTheme(day)).render(true, true);
           });
         });
-        fetchData("4/overview.json").then(function(json) {
-          var setTheme = function(day) {
-            return function(engine, state) {
+        fetchData("4/overview.json").then(function (json) {
+          var setTheme = function (day) {
+            return function (engine, state) {
               setCommonTheme(day, engine, state);
               setBarTheme(day, engine, state);
             };
@@ -206,13 +206,13 @@
               )
             );
 
-          listeners.push(function(day) {
+          listeners.push(function (day) {
             controller.update(setTheme(day)).render(true, true);
           });
         });
-        fetchData("5/overview.json").then(function(json) {
-          var setTheme = function(day) {
-            return function(engine, state) {
+        fetchData("5/overview.json").then(function (json) {
+          var setTheme = function (day) {
+            return function (engine, state) {
               setCommonTheme(day, engine, state);
               setBarTheme(day, engine, state);
             };
@@ -223,13 +223,13 @@
             .update(setTheme(true))
             .mount(customMount(target, "Apps", "No pie chart unfortunately"));
 
-          listeners.push(function(day) {
+          listeners.push(function (day) {
             controller.update(setTheme(day)).render(true, true);
           });
         });
 
         // Toggles between night/day mode
-        (function() {
+        (function () {
           var day = true;
           var switcher = document.getElementsByClassName("switch")[0];
 
