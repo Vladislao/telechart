@@ -2,46 +2,36 @@
   "name": "telechart",
   "version": "1.0.0",
   "description": "Minimalistic charts without dependencies",
-  "main": "dist/telechart.js",
-  "module": "index.js",
+  "source": "./src/module.js",
+  "global": "./dist/global/telechart.min.js",
+  "main": "./dist/cjs/telechart.js",
+  "module": "./dist/esm/telechart.js",
+  "targets": {
+    "global": {
+      "context": "browser",
+      "outputFormat": "global",
+      "optimize": true,
+      "source": [
+        "./src/browser.js"
+      ]
+    },
+    "main": {},
+    "module": {}
+  },
   "scripts": {
-    "start": "webpack-dev-server --open --mode=development --host 0.0.0.0",
-    "build": "webpack --mode=production",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "http-server dist --gzip"
+    "start": "parcel example/index.html",
+    "build": "parcel build",
+    "serve": "npx http-server demo --gzip -o"
   },
   "browserslist": "> 0.25%, not dead",
   "keywords": [
     "chart",
-    "webgl",
     "canvas"
   ],
-  "author": "Vladislav",
+  "author": "vladislaosan@gmail.com",
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.4.0",
-    "@babel/plugin-transform-runtime": "^7.4.3",
-    "@babel/preset-env": "^7.4.2",
-    "autoprefixer": "^9.5.0",
-    "babel-loader": "^8.0.5",
-    "compression-webpack-plugin": "^2.0.0",
-    "copy-webpack-plugin": "^5.0.2",
-    "css-declaration-sorter": "^4.0.1",
-    "css-loader": "^2.1.1",
-    "cssnano": "^4.1.10",
-    "cssnano-preset-advanced": "^4.0.7",
-    "eslint": "^5.15.3",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-config-prettier": "^4.1.0",
-    "eslint-plugin-import": "^2.16.0",
-    "eslint-plugin-prettier": "^3.0.1",
-    "http-server": "^0.11.1",
-    "mini-css-extract-plugin": "^0.5.0",
-    "postcss-loader": "^3.0.0",
-    "prettier": "^1.16.4",
-    "style-loader": "^0.23.1",
-    "webpack": "^4.29.6",
-    "webpack-cli": "^3.2.3",
-    "webpack-dev-server": "^3.2.1"
+    "parcel": "^2.10.3",
+    "prettier": "3.1.0"
   }
 }

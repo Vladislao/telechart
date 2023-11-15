@@ -1,6 +1,7 @@
 node_modules
-coverage
-stats.json
+tmp
+.parcel-cache
+dist
 
 .vscode
 .DS_Store

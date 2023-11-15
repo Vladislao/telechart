@@ -1,8 +1,0 @@
-{
-  "name": "Telechart Demo",
-  "description": "Minimalistic charts without dependencies",
-  "repository": "https://github.com/Vladislao/telechart",
-  "logo": "https://cdn.rawgit.com/heroku/node-js-getting-started/master/public/node.svg",
-  "keywords": [],
-  "image": "heroku/nodejs"
-}
