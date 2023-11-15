@@ -1,18 +1,16 @@
-require("./index.css");
-
 const createEngine = require("./engine");
 const createState = require("./state");
 
-const createView = require("./components/view");
-const createPreview = require("./components/preview");
-const createControls = require("./components/controls");
-const createTooltip = require("./components/tooltip");
-const createRange = require("./components/range");
+const createView = require("../components/view");
+const createPreview = require("../components/preview");
+const createControls = require("../components/controls");
+const createTooltip = require("../components/tooltip");
+const createRange = require("../components/range");
 
-const createControlHandlers = require("./handlers/controls");
-const createTooltipHandler = require("./handlers/tooltip");
-const createPreviewHandler = require("./handlers/preview");
-const createZoomHandler = require("./handlers/zoom");
+const createControlHandlers = require("../handlers/controls");
+const createTooltipHandler = require("../handlers/tooltip");
+const createPreviewHandler = require("../handlers/preview");
+const createZoomHandler = require("../handlers/zoom");
 
 const mountDefault = (element, components) => {
   element.className = "tc-wrapper";
@@ -23,7 +21,7 @@ const mountDefault = (element, components) => {
   element.appendChild(components.controls);
 };
 
-module.exports = function telechart(data, options) {
+function telechart(data, options) {
   /*
    * Engine handles rendering and initialized once on the page.
    */
@@ -73,7 +71,7 @@ module.exports = function telechart(data, options) {
     createPreviewHandler(state, engine, [
       view.render,
       preview.render,
-      range.render
+      range.render,
     ])
   );
   tooltip.register(createZoomHandler(api, state, engine, []));
@@ -83,24 +81,24 @@ module.exports = function telechart(data, options) {
     controls,
     preview,
     tooltip,
-    range
+    range,
   };
 
   const elements = {
     view: view.element,
     preview: preview.element,
     controls: controls.element,
-    range: range.element
+    range: range.element,
   };
 
   const _r = [view.render, preview.render, range.render, tooltip.render];
   const render = (force, immediately) => {
     if (immediately) {
-      _r.forEach(v => v(force));
+      _r.forEach((v) => v(force));
     } else {
       engine.registerAnimation({
         force,
-        draw: _r
+        draw: _r,
       });
     }
   };
@@ -109,7 +107,7 @@ module.exports = function telechart(data, options) {
    * API for chart
    */
 
-  api.mount = func => {
+  api.mount = (func) => {
     if (typeof func === "function") {
       func(elements);
     } else {
@@ -121,7 +119,7 @@ module.exports = function telechart(data, options) {
 
     return api;
   };
-  api.update = func => {
+  api.update = (func) => {
     func(engine, state, components);
     return api;
   };
@@ -129,10 +127,30 @@ module.exports = function telechart(data, options) {
     render(force, immediately);
     return api;
   };
-  api.onZoomIn = func => {
+  api.onZoomIn = (func) => {
     api.zoomIn = func;
     return api;
   };
 
   return api;
+}
+
+module.exports = {
+  createEngine,
+  createState,
+
+  createView,
+  createPreview,
+  createControls,
+  createTooltip,
+  createRange,
+
+  createControlHandlers,
+  createTooltipHandler,
+  createPreviewHandler,
+  createZoomHandler,
+
+  mountDefault,
 };
+
+module.exports.default = telechart;

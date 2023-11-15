@@ -1,7 +1,7 @@
-const { closest, findMatrix, findSum } = require("./utils/transformation");
-const segmentTree = require("./utils/segmentTree");
+const { closest, findMatrix, findSum } = require("../utils/transformation");
+const segmentTree = require("../utils/segmentTree");
 
-const getValues = (columns, id) => columns.find(v => v[0] === id).slice(1);
+const getValues = (columns, id) => columns.find((v) => v[0] === id).slice(1);
 
 const createCharts = (ids, data) =>
   ids.reduce((acc, v) => {
@@ -13,16 +13,16 @@ const createCharts = (ids, data) =>
       type: data.types[v],
       color: {
         hex: data.colors[v],
-        alpha: 1
+        alpha: 1,
       },
       disabled: false,
-      values
+      values,
     };
 
     return acc;
   }, {});
 
-const create = data => {
+const create = (data) => {
   const ids = Object.keys(data.names);
   const x = getValues(data.columns, "x");
   const charts = createCharts(ids, data);
@@ -38,15 +38,15 @@ const create = data => {
     percentage: !!data.percentage,
     x: {
       values: x,
-      matrix: [0, x.length - 1]
+      matrix: [0, x.length - 1],
     },
     y: {
       lineWidth: 1,
-      matrix: [-1, -1, -1]
+      matrix: [-1, -1, -1],
     },
     y0: {
       lineWidth: 2,
-      matrix: [-1, -1, -1]
+      matrix: [-1, -1, -1],
     },
     window: {
       offset: windowOffset,
@@ -56,37 +56,37 @@ const create = data => {
         width: 10,
         stroke: {
           hex: "#C0D1E1",
-          alpha: 1
+          alpha: 1,
         },
         color: {
           hex: "#C0D1E1",
-          alpha: 1
-        }
+          alpha: 1,
+        },
       },
       mask: {
         color: {
           hex: "#E2EEF9",
-          alpha: 0.6
-        }
-      }
+          alpha: 0.6,
+        },
+      },
     },
     tooltip: {
       lineWidth: 1,
       lighten: true,
       color: {
         hex: "#182D3B",
-        alpha: 0.1
+        alpha: 0.1,
       },
       radius: 3,
-      index: null
+      index: null,
     },
     grid: {
       lines: 5,
       lineWidth: 1,
       color: {
         hex: "#182D3B",
-        alpha: 0.1
-      }
+        alpha: 0.1,
+      },
     },
     axis: {
       x: {
@@ -94,18 +94,18 @@ const create = data => {
         size: 10,
         color: {
           hex: "#8E8E93",
-          alpha: 1
-        }
+          alpha: 1,
+        },
       },
       y: {
         font: "Arial",
         size: 10,
         color: {
           hex: "#8E8E93",
-          alpha: 1
-        }
-      }
-    }
+          alpha: 1,
+        },
+      },
+    },
   };
 
   if (data.percentage) {
@@ -114,7 +114,7 @@ const create = data => {
     state.y.sum = findSum(state);
     state.y.mmtree = segmentTree.create(state.y.sum);
   } else {
-    ids.forEach(v => {
+    ids.forEach((v) => {
       const chart = charts[v];
       chart.mmtree = segmentTree.create(chart.values);
     });

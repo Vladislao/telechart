@@ -1,8 +1,8 @@
 let engine = null;
 
-const isMobile = function() {
+const isMobile = function () {
   var check = false;
-  (function(a) {
+  (function (a) {
     if (
       /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(
         a
@@ -22,7 +22,7 @@ const isPassiveSupported = () => {
     const options = {
       get passive() {
         passiveSupported = true;
-      }
+      },
     };
 
     window.addEventListener("test", options, options);
@@ -62,11 +62,11 @@ module.exports = () => {
         touchmove: [],
         touchcancel: [],
         touchend: [],
-        touchstart: []
+        touchstart: [],
       },
 
-      handleEvent: e => {
-        engine.listeners[e.type].forEach(v => v(e));
+      handleEvent: (e) => {
+        engine.listeners[e.type].forEach((v) => v(e));
       },
 
       addEventListener: (type, listener) => {
@@ -75,11 +75,11 @@ module.exports = () => {
 
       removeEventListener: (type, listener) => {
         engine.listeners[type] = engine.listeners[type].filter(
-          v => v !== listener
+          (v) => v !== listener
         );
       },
 
-      registerAnimation: animation => {
+      registerAnimation: (animation) => {
         engine.animations.push(animation);
 
         if (engine.animations.length === 1) {
@@ -88,17 +88,17 @@ module.exports = () => {
         return animation;
       },
 
-      cancelAnimation: animation => {
-        engine.animations = engine.animations.filter(v => v !== animation);
+      cancelAnimation: (animation) => {
+        engine.animations = engine.animations.filter((v) => v !== animation);
         return null;
       },
 
-      render: ms => {
+      render: (ms) => {
         // collect components that requires repainting
         const draw = [];
         let force = false;
         // run animations, filter finished ones
-        engine.animations = engine.animations.filter(v => {
+        engine.animations = engine.animations.filter((v) => {
           draw.push(v.draw);
           force = force || v.force;
           return v.update ? v.update(ms) : false;
@@ -107,9 +107,9 @@ module.exports = () => {
         // TODO: very ugly, rethink
         const finished = [];
         // let count = 0;
-        draw.forEach(v =>
-          v.forEach(component => {
-            if (finished.some(c => c === component)) return;
+        draw.forEach((v) =>
+          v.forEach((component) => {
+            if (finished.some((c) => c === component)) return;
             finished.push(component);
             component(force);
             // count += 1;
@@ -119,7 +119,7 @@ module.exports = () => {
         if (engine.animations.length) {
           window.requestAnimationFrame(engine.render);
         }
-      }
+      },
     };
 
     createEventListeners();
