@@ -1,6 +1,6 @@
 {
   "name": "telechart",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Minimalistic charts without dependencies",
   "source": "./src/module.js",
   "global": "./dist/telechart.min.js",
