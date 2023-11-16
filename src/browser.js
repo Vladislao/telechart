@@ -1,4 +1,3 @@
-require("./index.css");
-const telechart = require("./core/telechart");
+import telechart from "./core/telechart";
 
-window.telechart = telechart.default;
+window.telechart = telechart;

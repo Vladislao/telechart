@@ -3,20 +3,31 @@
   "version": "1.0.0",
   "description": "Minimalistic charts without dependencies",
   "source": "./src/module.js",
-  "global": "./dist/global/telechart.min.js",
-  "main": "./dist/cjs/telechart.js",
-  "module": "./dist/esm/telechart.js",
+  "global": "./dist/telechart.min.js",
+  "main": "./dist/main.js",
+  "module": "./dist/module.js",
+  "css": "./dist/telechart.min.css",
   "targets": {
     "global": {
       "context": "browser",
       "outputFormat": "global",
       "optimize": true,
-      "source": [
-        "./src/browser.js"
-      ]
+      "source": "./src/browser.js"
+    },
+    "css": {
+      "context": "browser",
+      "optimize": true,
+      "source": "./src/index.css"
     },
     "main": {},
     "module": {}
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/module.js",
+      "default": "./dist/main.js"
+    },
+    "./telechart.min.css": "./dist/telechart.min.css"
   },
   "scripts": {
     "start": "parcel example/index.html",

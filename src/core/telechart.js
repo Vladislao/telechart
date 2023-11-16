@@ -135,22 +135,19 @@ function telechart(data, options) {
   return api;
 }
 
-module.exports = {
+export {
   createEngine,
   createState,
-
   createView,
   createPreview,
   createControls,
   createTooltip,
   createRange,
-
   createControlHandlers,
   createTooltipHandler,
   createPreviewHandler,
   createZoomHandler,
-
   mountDefault,
 };
 
-module.exports.default = telechart;
+export default telechart;

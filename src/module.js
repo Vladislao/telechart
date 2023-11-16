@@ -1,3 +1,2 @@
-require("./index.css");
-
-module.exports = require("./core/telechart");
+export { default } from "./core/telechart";
+export * from "./core/telechart";
