@@ -51,7 +51,7 @@ const target = document.getElementById("demo");
 const controller = telechart(data).mount(target);
 ```
 
-## Contribution
+## Contributing
 
 ### Run dev
 
