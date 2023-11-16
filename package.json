@@ -39,6 +39,10 @@
     "chart",
     "canvas"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Vladislao/telechart.git"
+  },
   "author": "vladislaosan@gmail.com",
   "license": "MIT",
   "devDependencies": {
